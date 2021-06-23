@@ -40,12 +40,13 @@ pub const Container = struct {
 
     pub fn parse(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !Container {
         var fields = std.ArrayList(Field).init(alloc);
+        var state: u8 = @intCast(u8, 0);
         while (try stream.next()) |tok| {
             switch (tok) {
-                .String => |t| {},
-                .ObjectBegin => {},
-                .ObjectEnd => {},
-                else => {},
+                .ObjectBegin => try parseField(stream, json, alloc, state),
+                .ArrayBegin => state = 1,
+                .ArrayEnd => break,
+                else => return ParseError.UnexpectedToken,
             }
         }
 
@@ -59,7 +60,36 @@ pub const Container = struct {
 
 pub const Switch = struct {};
 pub const Array = struct {
+    countType: FieldType,
     items: []FieldType,
+
+    pub fn parse(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !Container {
+        var items = std.ArrayList(FieldType).init(alloc);
+        var state: u8 = @intCast(u8, 0);
+        var countType = FieldType{.varint};
+        while (try stream.next()) |tok| {
+            switch (tok) {
+                .ObjectBegin => state = 1,
+                .String => |t| {
+                    if (state <= 1) return ParseError.UnexpectedToken;
+                    const tag = t.slice(json, stream.i - 1);
+                    switch (tag) {
+                        "countType" => state = 2,
+                        "type" => {},
+                    }
+                },
+                .ObjectEnd => break,
+                else => return ParseError.UnexpectedToken,
+            }
+        }
+
+        var ret = try alloc.create(Array);
+        ret.* = .{
+            .items = items.toOwnedSlice(),
+            .countType = countType,
+        };
+        return ret;
+    }
 };
 
 pub fn Native(comptime T: type) type {
@@ -98,6 +128,8 @@ pub const FieldType = union(enum) {
     particle: Particle,
     ingredient: Ingredient,
     entityMetadata: EntityMetaData,
+
+    pub fn parse(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !FieldType {}
 };
 
 pub const AST = struct {
@@ -236,7 +268,7 @@ pub fn parsePacketSet(stream: std.json.TokenStream, json: []const u8, alloc: *st
                     "types" => state = 2,
                     else => {
                         if (state == 3) {
-                            try packets.append(Packet{ .name = t.slice(json, stream.i - 1), .root = try parseFieldType(stream, json, alloc) });
+                            try packets.append(Packet{ .name = t.slice(json, stream.i - 1), .root = try parseFieldType(stream, json, alloc, 0) });
                         } else {
                             return ParseError.UnexpectedToken;
                         }
@@ -272,8 +304,7 @@ pub fn parsePacketSet(stream: std.json.TokenStream, json: []const u8, alloc: *st
 //      "name": "name",
 //      "type": FieldType,
 // }
-pub fn parseField(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !Field {
-    var state: u8 = 0;
+pub fn parseField(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator, state: u8) !Field {
     var name: []const u8 = undefined;
     var typeOf: FieldType = undefined;
     while (try stream.next()) |tok| {
@@ -366,7 +397,7 @@ pub fn parseFieldType(stream: std.json.TokenStream, json: []const u8, alloc: *st
                     1 => {
                         const tag = t.slice(json, stream.i - 1);
                         switch (tag) {
-                            "container" => {},
+                            "container" => return try Container.parse(stream, json, alloc),
                             "array" => {},
                             "option" => {},
                             "topBitSetTerminatedArray" => {},
