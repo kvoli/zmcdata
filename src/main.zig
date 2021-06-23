@@ -38,8 +38,25 @@ pub const TopBitTerminatedArray = struct {};
 pub const Container = struct {
     fields: []Field,
 
-    pub fn parse(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !Container {}
+    pub fn parse(stream: std.json.TokenStream, json: []const u8, alloc: *std.mem.Allocator) !Container {
+        var fields = std.ArrayList(Field).init(alloc);
+        while (try stream.next()) |tok| {
+            switch (tok) {
+                .String => |t| {},
+                .ObjectBegin => {},
+                .ObjectEnd => {},
+                else => {},
+            }
+        }
+
+        var ret = try alloc.create(Container);
+        ret.* = .{
+            .fields = fields.toOwnedSlice(),
+        };
+        return ret;
+    }
 };
+
 pub const Switch = struct {};
 pub const Array = struct {
     items: []FieldType,
