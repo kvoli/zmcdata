@@ -29,6 +29,8 @@ const indent = (i) => {
   return out;
 };
 
+var statemap = {};
+
 const parseState = (stateName, data) => {
   if (stateName == "types") {
     return;
@@ -43,12 +45,27 @@ const parsePacketSet = (packetSet, i) => {
   Object.entries(packetSet.toClient.types).map((pkt) => {
     parsePacket(pkt, i + 1);
   });
+  pprint(i, ``);
+  pprint(i + 1, "pub const S2C = enum(u8) {");
+  parseStateEnum(i + 2);
+  pprint(i + 1, "};");
   pprint(i, `};\n`);
+
   pprint(i, `pub const c2s = union(C2S) {`);
   Object.entries(packetSet.toServer.types).map((pkt) => {
     parsePacket(pkt, i + 1);
   });
+  pprint(i, ``);
+  pprint(i + 1, "pub const C2S = enum(u8) {");
+  parseStateEnum(i + 2);
+  pprint(i + 1, "};");
   pprint(i, `};`);
+};
+
+const parseStateEnum = (i) => {
+  objectMap(statemap, (k, v) => {
+    pprint(i, `${v}: ${k},`);
+  });
 };
 
 const parsePacket = (pkt, i) => {
@@ -78,6 +95,9 @@ const parseType = (t, i) => {
 const parsePacketMap = (pkt, i) => {
   let mapName = pkt[0];
   let mappings = mapName.type[1].mappings;
+
+  statemap = mappings;
+
   var out = "";
   objectMap(mappings, (k, v) => pprint(i, `${v}: ${snake2Pascal(v)},`)).forEach(
     (e) => (out += e)

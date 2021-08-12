@@ -1,5 +1,8 @@
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
+    
+        pub const S2C = enum(u8) {
+        };
     };
 
     pub const c2s = union(C2S) {
@@ -16,6 +19,11 @@ pub const handshaking = struct {
 
         set_protocol: SetProtocol,
         legacy_server_list_ping: LegacyServerListPing,
+    
+        pub const C2S = enum(u8) {
+            set_protocol: 0x00,
+            legacy_server_list_ping: 0xfe,
+        };
     };
 };
 pub const status = struct {
@@ -30,6 +38,11 @@ pub const status = struct {
 
         server_info: ServerInfo,
         ping: Ping,
+    
+        pub const S2C = enum(u8) {
+            server_info: 0x00,
+            ping: 0x01,
+        };
     };
 
     pub const c2s = union(C2S) {
@@ -42,6 +55,11 @@ pub const status = struct {
 
         ping_start: PingStart,
         ping: Ping,
+    
+        pub const C2S = enum(u8) {
+            ping_start: 0x00,
+            ping: 0x01,
+        };
     };
 };
 pub const login = struct {
@@ -76,6 +94,14 @@ pub const login = struct {
         success: Success,
         compress: Compress,
         login_plugin_request: LoginPluginRequest,
+    
+        pub const S2C = enum(u8) {
+            disconnect: 0x00,
+            encryption_begin: 0x01,
+            success: 0x02,
+            compress: 0x03,
+            login_plugin_request: 0x04,
+        };
     };
 
     pub const c2s = union(C2S) {
@@ -96,6 +122,12 @@ pub const login = struct {
         login_start: LoginStart,
         encryption_begin: EncryptionBegin,
         login_plugin_response: LoginPluginResponse,
+    
+        pub const C2S = enum(u8) {
+            login_start: 0x00,
+            encryption_begin: 0x01,
+            login_plugin_response: 0x02,
+        };
     };
 };
 pub const play = struct {
@@ -1236,6 +1268,112 @@ pub const play = struct {
         entity_effect: EntityEffect,
         declare_recipes: DeclareRecipes,
         tags: Tags,
+    
+        pub const S2C = enum(u8) {
+            spawn_entity: 0x00,
+            spawn_entity_experience_orb: 0x01,
+            spawn_entity_living: 0x02,
+            spawn_entity_painting: 0x03,
+            named_entity_spawn: 0x04,
+            sculk_vibration_signal: 0x05,
+            animation: 0x06,
+            statistics: 0x07,
+            acknowledge_player_digging: 0x08,
+            block_break_animation: 0x09,
+            tile_entity_data: 0x0a,
+            block_action: 0x0b,
+            block_change: 0x0c,
+            boss_bar: 0x0d,
+            difficulty: 0x0e,
+            chat: 0x0f,
+            clear_titles: 0x10,
+            tab_complete: 0x11,
+            declare_commands: 0x12,
+            close_window: 0x13,
+            window_items: 0x14,
+            craft_progress_bar: 0x15,
+            set_slot: 0x16,
+            set_cooldown: 0x17,
+            custom_payload: 0x18,
+            named_sound_effect: 0x19,
+            kick_disconnect: 0x1a,
+            entity_status: 0x1b,
+            explosion: 0x1c,
+            unload_chunk: 0x1d,
+            game_state_change: 0x1e,
+            open_horse_window: 0x1f,
+            initialize_world_border: 0x20,
+            keep_alive: 0x21,
+            map_chunk: 0x22,
+            world_event: 0x23,
+            world_particles: 0x24,
+            update_light: 0x25,
+            login: 0x26,
+            map: 0x27,
+            trade_list: 0x28,
+            rel_entity_move: 0x29,
+            entity_move_look: 0x2a,
+            entity_look: 0x2b,
+            vehicle_move: 0x2c,
+            open_book: 0x2d,
+            open_window: 0x2e,
+            open_sign_entity: 0x2f,
+            ping: 0x30,
+            craft_recipe_response: 0x31,
+            abilities: 0x32,
+            end_combat_event: 0x33,
+            enter_combat_event: 0x34,
+            death_combat_event: 0x35,
+            player_info: 0x36,
+            face_player: 0x37,
+            position: 0x38,
+            unlock_recipes: 0x39,
+            destroy_entity: 0x3a,
+            remove_entity_effect: 0x3b,
+            resource_pack_send: 0x3c,
+            respawn: 0x3d,
+            entity_head_rotation: 0x3e,
+            multi_block_change: 0x3f,
+            select_advancement_tab: 0x40,
+            action_bar: 0x41,
+            world_border_center: 0x42,
+            world_border_lerp_size: 0x43,
+            world_border_size: 0x44,
+            world_border_warning_delay: 0x45,
+            world_border_warning_reach: 0x46,
+            camera: 0x47,
+            held_item_slot: 0x48,
+            update_view_position: 0x49,
+            update_view_distance: 0x4a,
+            spawn_position: 0x4b,
+            scoreboard_display_objective: 0x4c,
+            entity_metadata: 0x4d,
+            attach_entity: 0x4e,
+            entity_velocity: 0x4f,
+            entity_equipment: 0x50,
+            experience: 0x51,
+            update_health: 0x52,
+            scoreboard_objective: 0x53,
+            set_passengers: 0x54,
+            teams: 0x55,
+            scoreboard_score: 0x56,
+            set_title_subtitle: 0x57,
+            update_time: 0x58,
+            set_title_text: 0x59,
+            set_title_time: 0x5a,
+            entity_sound_effect: 0x5b,
+            sound_effect: 0x5c,
+            stop_sound: 0x5d,
+            playerlist_header: 0x5e,
+            nbt_query_response: 0x5f,
+            collect: 0x60,
+            entity_teleport: 0x61,
+            advancements: 0x62,
+            entity_update_attributes: 0x63,
+            entity_effect: 0x64,
+            declare_recipes: 0x65,
+            tags: 0x66,
+        };
     };
 
     pub const c2s = union(C2S) {
@@ -1588,5 +1726,56 @@ pub const play = struct {
         spectate: Spectate,
         block_place: BlockPlace,
         use_item: UseItem,
+    
+        pub const C2S = enum(u8) {
+            teleport_confirm: 0x00,
+            query_block_nbt: 0x01,
+            set_difficulty: 0x02,
+            chat: 0x03,
+            client_command: 0x04,
+            settings: 0x05,
+            tab_complete: 0x06,
+            enchant_item: 0x07,
+            window_click: 0x08,
+            close_window: 0x09,
+            custom_payload: 0x0a,
+            edit_book: 0x0b,
+            query_entity_nbt: 0x0c,
+            use_entity: 0x0d,
+            generate_structure: 0x0e,
+            keep_alive: 0x0f,
+            lock_difficulty: 0x10,
+            position: 0x11,
+            position_look: 0x12,
+            look: 0x13,
+            flying: 0x14,
+            vehicle_move: 0x15,
+            steer_boat: 0x16,
+            pick_item: 0x17,
+            craft_recipe_request: 0x18,
+            abilities: 0x19,
+            block_dig: 0x1a,
+            entity_action: 0x1b,
+            steer_vehicle: 0x1c,
+            pong: 0x1d,
+            displayed_recipe: 0x1e,
+            recipe_book: 0x1f,
+            name_item: 0x20,
+            resource_pack_receive: 0x21,
+            advancement_tab: 0x22,
+            select_trade: 0x23,
+            set_beacon_effect: 0x24,
+            held_item_slot: 0x25,
+            update_command_block: 0x26,
+            update_command_block_minecart: 0x27,
+            set_creative_slot: 0x28,
+            update_jigsaw_block: 0x29,
+            update_structure_block: 0x2a,
+            update_sign: 0x2b,
+            arm_animation: 0x2c,
+            spectate: 0x2d,
+            block_place: 0x2e,
+            use_item: 0x2f,
+        };
     };
 };
