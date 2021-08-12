@@ -1,8 +1,6 @@
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
-    
-        pub const S2C = enum(u8) {
-        };
+        pub const S2C = enum(u8) {};
     };
 
     pub const c2s = union(C2S) {
@@ -19,7 +17,7 @@ pub const handshaking = struct {
 
         set_protocol: SetProtocol,
         legacy_server_list_ping: LegacyServerListPing,
-    
+
         pub const C2S = enum(u8) {
             set_protocol: 0x00,
             legacy_server_list_ping: 0xfe,
@@ -38,7 +36,7 @@ pub const status = struct {
 
         server_info: ServerInfo,
         ping: Ping,
-    
+
         pub const S2C = enum(u8) {
             server_info: 0x00,
             ping: 0x01,
@@ -46,8 +44,7 @@ pub const status = struct {
     };
 
     pub const c2s = union(C2S) {
-        pub const PingStart = struct {
-        };
+        pub const PingStart = struct {};
 
         pub const Ping = struct {
             time: i64,
@@ -55,7 +52,7 @@ pub const status = struct {
 
         ping_start: PingStart,
         ping: Ping,
-    
+
         pub const C2S = enum(u8) {
             ping_start: 0x00,
             ping: 0x01,
@@ -94,7 +91,7 @@ pub const login = struct {
         success: Success,
         compress: Compress,
         login_plugin_request: LoginPluginRequest,
-    
+
         pub const S2C = enum(u8) {
             disconnect: 0x00,
             encryption_begin: 0x01,
@@ -122,7 +119,7 @@ pub const login = struct {
         login_start: LoginStart,
         encryption_begin: EncryptionBegin,
         login_plugin_response: LoginPluginResponse,
-    
+
         pub const C2S = enum(u8) {
             login_start: 0x00,
             encryption_begin: 0x01,
@@ -213,22 +210,22 @@ pub const play = struct {
                         icon: slot,
                         frameType: varint,
                         flags: packed struct {
-                                _unused: u29,
-                                hidden: u1,
-                                show_toast: u1,
-                                has_background_texture: u1,
-                            },
-                        backgroundTexture: SwitchType(flags/has_background_texture, struct {
-                                x1: []u8,
-                                default: void,
-                            }),
+                            _unused: u29,
+                            hidden: u1,
+                            show_toast: u1,
+                            has_background_texture: u1,
+                        },
+                        backgroundTexture: SwitchType(has_background_texture, struct {
+                            x1: []u8,
+                            default: null,
+                        }),
                         xCord: f32,
                         yCord: f32,
                     },
                     criteria: ArrayType(varint, struct {
-                            key: []u8,
-                            value: null,
-                        }),
+                        key: []u8,
+                        value: null,
+                    }),
                     requirements: ArrayType(varint, ArrayType(varint, []u8)),
                 },
             }),
@@ -236,9 +233,9 @@ pub const play = struct {
             progressMapping: ArrayType(varint, struct {
                 key: []u8,
                 value: ArrayType(varint, struct {
-                        criterionIdentifier: []u8,
-                        criterionProgress: ?i64,
-                    }),
+                    criterionIdentifier: []u8,
+                    criterionProgress: ?i64,
+                }),
             }),
         };
 
@@ -272,27 +269,27 @@ pub const play = struct {
             title: SwitchType(action, struct {
                 x0: []u8,
                 x3: []u8,
-                default: void,
+                default: null,
             }),
             health: SwitchType(action, struct {
                 x0: f32,
                 x2: f32,
-                default: void,
+                default: null,
             }),
             color: SwitchType(action, struct {
                 x0: varint,
                 x4: varint,
-                default: void,
+                default: null,
             }),
             dividers: SwitchType(action, struct {
                 x0: varint,
                 x4: varint,
-                default: void,
+                default: null,
             }),
             flags: SwitchType(action, struct {
                 x0: u8,
                 x5: u8,
-                default: void,
+                default: null,
             }),
         };
 
@@ -311,104 +308,6 @@ pub const play = struct {
             }),
         };
 
-        pub const DeclareCommands = struct {
-            nodes: ArrayType(varint, struct {
-                flags: packed struct {
-                        unused: u3,
-                        has_custom_suggestions: u1,
-                        has_redirect_node: u1,
-                        has_command: u1,
-                        command_node_type: u2,
-                    },
-                children: ArrayType(varint, varint),
-                redirectNode: SwitchType(flags/has_redirect_node, struct {
-                        x1: varint,
-                        default: void,
-                    }),
-                extraNodeData: SwitchType(flags/command_node_type, struct {
-                        x0: null,
-                        x1: []u8,
-                        x2: struct {
-                    name: []u8,
-                    parser: []u8,
-                    properties: SwitchType(parser, struct {
-                            xbrigadier:double: struct {
-                        flags: packed struct {
-                                unused: u6,
-                                max_present: u1,
-                                min_present: u1,
-                            },
-                        min: SwitchType(flags/min_present, struct {
-                                x1: f64,
-                                default: void,
-                            }),
-                        max: SwitchType(flags/max_present, struct {
-                                x1: f64,
-                                default: void,
-                            }),
-                    },
-                            xbrigadier:float: struct {
-                        flags: packed struct {
-                                unused: u6,
-                                max_present: u1,
-                                min_present: u1,
-                            },
-                        min: SwitchType(flags/min_present, struct {
-                                x1: f32,
-                                default: void,
-                            }),
-                        max: SwitchType(flags/max_present, struct {
-                                x1: f32,
-                                default: void,
-                            }),
-                    },
-                            xbrigadier:integer: struct {
-                        flags: packed struct {
-                                unused: u6,
-                                max_present: u1,
-                                min_present: u1,
-                            },
-                        min: SwitchType(flags/min_present, struct {
-                                x1: i32,
-                                default: void,
-                            }),
-                        max: SwitchType(flags/max_present, struct {
-                                x1: i32,
-                                default: void,
-                            }),
-                    },
-                            xbrigadier:long: struct {
-                        flags: packed struct {
-                                unused: u6,
-                                max_present: u1,
-                                min_present: u1,
-                            },
-                        min: SwitchType(flags/min_present, struct {
-                                x1: i64,
-                                default: void,
-                            }),
-                        max: SwitchType(flags/max_present, struct {
-                                x1: i64,
-                                default: void,
-                            }),
-                    },
-                            xbrigadier:string: varint,
-                            xminecraft:entity: i8,
-                            xminecraft:score_holder: i8,
-                            xminecraft:range: bool,
-                            default: void,
-                        }),
-                    suggests: SwitchType(../flags/has_custom_suggestions, struct {
-                            x1: []u8,
-                            default: void,
-                        }),
-                },
-                        default: void,
-                    }),
-            }),
-            rootIndex: varint,
-        };
-
         pub const FacePlayer = struct {
             feet_eyes: varint,
             x: f64,
@@ -417,11 +316,11 @@ pub const play = struct {
             isEntity: bool,
             entityId: SwitchType(isEntity, struct {
                 xtrue: varint,
-                default: void,
+                default: null,
             }),
             entity_feet_eyes: SwitchType(isEntity, struct {
                 xtrue: []u8,
-                default: void,
+                default: null,
             }),
         };
 
@@ -624,7 +523,7 @@ pub const play = struct {
             }),
             data: SwitchType(columns, struct {
                 x0: null,
-                default: buffer,[object Object],
+                default: []u8,
             }),
         };
 
@@ -705,8 +604,7 @@ pub const play = struct {
             entityId: i32,
         };
 
-        pub const EnterCombatEvent = struct {
-        };
+        pub const EnterCombatEvent = struct {};
 
         pub const DeathCombatEvent = struct {
             playerId: varint,
@@ -718,33 +616,33 @@ pub const play = struct {
             action: varint,
             data: ArrayType(varint, struct {
                 UUID: UUID,
-                name: SwitchType(../action, struct {
-                        x0: []u8,
-                        default: void,
-                    }),
-                properties: SwitchType(../action, struct {
-                        x0: ArrayType(varint, struct {
+                name: SwitchType(action, struct {
+                    x0: []u8,
+                    default: null,
+                }),
+                properties: SwitchType(action, struct {
+                    x0: ArrayType(varint, struct {
                         name: []u8,
                         value: []u8,
                         signature: ?[]u8,
                     }),
-                        default: void,
-                    }),
-                gamemode: SwitchType(../action, struct {
-                        x0: varint,
-                        x1: varint,
-                        default: void,
-                    }),
-                ping: SwitchType(../action, struct {
-                        x0: varint,
-                        x2: varint,
-                        default: void,
-                    }),
-                displayName: SwitchType(../action, struct {
-                        x0: ?[]u8,
-                        x3: ?[]u8,
-                        default: void,
-                    }),
+                    default: null,
+                }),
+                gamemode: SwitchType(action, struct {
+                    x0: varint,
+                    x1: varint,
+                    default: null,
+                }),
+                ping: SwitchType(action, struct {
+                    x0: varint,
+                    x2: varint,
+                    default: null,
+                }),
+                displayName: SwitchType(action, struct {
+                    x0: ?[]u8,
+                    x3: ?[]u8,
+                    default: null,
+                }),
             }),
         };
 
@@ -772,7 +670,7 @@ pub const play = struct {
             recipes1: ArrayType(varint, []u8),
             recipes2: SwitchType(action, struct {
                 x0: ArrayType(varint, []u8),
-                default: void,
+                default: null,
             }),
         };
 
@@ -872,12 +770,12 @@ pub const play = struct {
             displayText: SwitchType(action, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             type: SwitchType(action, struct {
                 x0: varint,
                 x2: varint,
-                default: void,
+                default: null,
             }),
         };
 
@@ -892,43 +790,43 @@ pub const play = struct {
             name: SwitchType(mode, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             friendlyFire: SwitchType(mode, struct {
                 x0: i8,
                 x2: i8,
-                default: void,
+                default: null,
             }),
             nameTagVisibility: SwitchType(mode, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             collisionRule: SwitchType(mode, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             formatting: SwitchType(mode, struct {
                 x0: varint,
                 x2: varint,
-                default: void,
+                default: null,
             }),
             prefix: SwitchType(mode, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             suffix: SwitchType(mode, struct {
                 x0: []u8,
                 x2: []u8,
-                default: void,
+                default: null,
             }),
             players: SwitchType(mode, struct {
                 x0: ArrayType(varint, []u8),
                 x3: ArrayType(varint, []u8),
                 x4: ArrayType(varint, []u8),
-                default: void,
+                default: null,
             }),
         };
 
@@ -965,12 +863,12 @@ pub const play = struct {
             source: SwitchType(flags, struct {
                 x1: varint,
                 x3: varint,
-                default: void,
+                default: null,
             }),
             sound: SwitchType(flags, struct {
                 x2: []u8,
                 x3: []u8,
-                default: void,
+                default: null,
             }),
         };
 
@@ -1011,10 +909,10 @@ pub const play = struct {
                 key: []u8,
                 value: f64,
                 modifiers: ArrayType(varint, struct {
-                        uuid: UUID,
-                        amount: f64,
-                        operation: i8,
-                    }),
+                    uuid: UUID,
+                    amount: f64,
+                    operation: i8,
+                }),
             }),
         };
 
@@ -1028,56 +926,6 @@ pub const play = struct {
 
         pub const SelectAdvancementTab = struct {
             id: ?[]u8,
-        };
-
-        pub const DeclareRecipes = struct {
-            recipes: ArrayType(varint, struct {
-                type: []u8,
-                recipeId: []u8,
-                data: SwitchType(type, struct {
-                        xminecraft:crafting_shapeless: struct {
-                    group: []u8,
-                    ingredients: ArrayType(varint, UNKNOWN_SIMPLE_TYPE(ingredient)),
-                    result: slot,
-                },
-                        xminecraft:crafting_shaped: struct {
-                    width: varint,
-                    height: varint,
-                    group: []u8,
-                    ingredients: ArrayType(undefined, ArrayType(undefined, UNKNOWN_SIMPLE_TYPE(ingredient))),
-                    result: slot,
-                },
-                        xminecraft:crafting_special_armordye: null,
-                        xminecraft:crafting_special_bookcloning: null,
-                        xminecraft:crafting_special_mapcloning: null,
-                        xminecraft:crafting_special_mapextending: null,
-                        xminecraft:crafting_special_firework_rocket: null,
-                        xminecraft:crafting_special_firework_star: null,
-                        xminecraft:crafting_special_firework_star_fade: null,
-                        xminecraft:crafting_special_repairitem: null,
-                        xminecraft:crafting_special_tippedarrow: null,
-                        xminecraft:crafting_special_bannerduplicate: null,
-                        xminecraft:crafting_special_banneraddpattern: null,
-                        xminecraft:crafting_special_shielddecoration: null,
-                        xminecraft:crafting_special_shulkerboxcoloring: null,
-                        xminecraft:crafting_special_suspiciousstew: null,
-                        xminecraft:smelting: UNKNOWN_SIMPLE_TYPE(minecraft_smelting_format),
-                        xminecraft:blasting: UNKNOWN_SIMPLE_TYPE(minecraft_smelting_format),
-                        xminecraft:smoking: UNKNOWN_SIMPLE_TYPE(minecraft_smelting_format),
-                        xminecraft:campfire_cooking: UNKNOWN_SIMPLE_TYPE(minecraft_smelting_format),
-                        xminecraft:stonecutting: struct {
-                    group: []u8,
-                    ingredient: UNKNOWN_SIMPLE_TYPE(ingredient),
-                    result: slot,
-                },
-                        xminecraft:smithing: struct {
-                    base: UNKNOWN_SIMPLE_TYPE(ingredient),
-                    addition: UNKNOWN_SIMPLE_TYPE(ingredient),
-                    result: slot,
-                },
-                        default: void,
-                    }),
-            }),
         };
 
         pub const Tags = struct {
@@ -1100,7 +948,7 @@ pub const play = struct {
             destination: SwitchType(destinationIdentifier, struct {
                 xblock: position,
                 xentityId: varint,
-                default: void,
+                default: null,
             }),
             arrivalTicks: varint,
         };
@@ -1268,7 +1116,7 @@ pub const play = struct {
         entity_effect: EntityEffect,
         declare_recipes: DeclareRecipes,
         tags: Tags,
-    
+
         pub const S2C = enum(u8) {
             spawn_entity: 0x00,
             spawn_entity_experience_orb: 0x01,
@@ -1504,20 +1352,20 @@ pub const play = struct {
             mouse: varint,
             x: SwitchType(mouse, struct {
                 x2: f32,
-                default: void,
+                default: null,
             }),
             y: SwitchType(mouse, struct {
                 x2: f32,
-                default: void,
+                default: null,
             }),
             z: SwitchType(mouse, struct {
                 x2: f32,
-                default: void,
+                default: null,
             }),
             hand: SwitchType(mouse, struct {
                 x0: varint,
                 x2: varint,
-                default: void,
+                default: null,
             }),
             sneaking: bool,
         };
@@ -1726,7 +1574,7 @@ pub const play = struct {
         spectate: Spectate,
         block_place: BlockPlace,
         use_item: UseItem,
-    
+
         pub const C2S = enum(u8) {
             teleport_confirm: 0x00,
             query_block_nbt: 0x01,

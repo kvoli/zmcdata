@@ -1,6 +1,9 @@
 const fs = require("fs");
 
-const blacklisted_packets = new Set(["packet_declare_commands"]);
+const blacklisted_packets = new Set([
+  "packet_declare_commands",
+  "packet_declare_recipes",
+]);
 
 fs.readFile(
   "./minecraft-data/data/pc/1.17/protocol.json",
@@ -71,6 +74,10 @@ const parseStateEnum = (i) => {
 const parsePacket = (pkt, i) => {
   let packetName = pkt[0];
   let packetData = pkt[1][1];
+
+  if (blacklisted_packets.has(packetName)) {
+    return;
+  }
 
   if (packetName === "packet") {
     parsePacketMap(packetData, i);
@@ -219,11 +226,14 @@ const parseContainer = (t, i) => {
 };
 
 const parseSwitch = (t, i) => {
-  var out = _pprint(0, `SwitchType(${t.compareTo}, struct {`);
+  var out = _pprint(0, `SwitchType(${t.compareTo.split("/").pop()}, struct {`);
   objectMap(t.fields, (k, v) => {
     out += _pprint(i + 1, `x${k}: ${parseType(v, i)},`);
   });
-  out += _pprint(i + 1, `default: ${t.default ? t.default : "void"},`);
+  out += _pprint(
+    i + 1,
+    `default: ${t.default ? parseType(t.default) : "void"},`
+  );
   return out + indent(i) + "})";
 };
 
