@@ -7,6 +7,8 @@ const blacklisted_packets = new Set([
   "packet_declare_recipes",
 ]);
 
+const blacklisted_typedecls = new Set(["slot", "entityMetadata"]);
+
 var buffer = "";
 
 const allVersions = () => {
@@ -21,8 +23,8 @@ allVersions();
 
 const parseTypeDecls = (data) => {
   objectMap(data, (k, v) => {
-    if (v !== "native") {
-      pprint(0, `pub const ${k} = ${parseType(v, 1)},`);
+    if (v !== "native" && !blacklisted_typedecls.has(k)) {
+      pprint(0, `pub const ${k} = ${parseType(v, 1)};`);
       pprint(0, "");
     }
   });
@@ -216,7 +218,7 @@ const parseSimpleType = (t) => {
     case "position":
       return "position";
     case "slot":
-      return "slot";
+      return "?Slot";
     case "optionalNbt":
       return "?nbt";
     case "nbt":
@@ -258,6 +260,7 @@ const parseContainer = (t, i) => {
   var out = _pprint(0, "struct {");
   t.map((field) => {
     if (field.anon !== undefined && field.anon) {
+      console.log("ANON ALERT,", field);
       out += _pprint(`${parseType(field.type, i + 1)},`);
     } else {
       // non anon

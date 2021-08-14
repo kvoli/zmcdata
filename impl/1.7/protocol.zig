@@ -1,27 +1,22 @@
-pub const string = []u8,
-
-pub const slot = struct {
-    blockId: i16,
-undefined
-},
+pub const string = []u8;
 
 pub const position_iii = struct {
     x: i32,
     y: i32,
     z: i32,
-},
+};
 
 pub const position_isi = struct {
     x: i32,
     y: i16,
     z: i32,
-},
+};
 
 pub const position_ibi = struct {
     x: i32,
     y: u8,
     z: i32,
-},
+};
 
 pub const entityMetadataItem = SwitchType($compareTo, struct {
         x0: i8,
@@ -29,7 +24,7 @@ pub const entityMetadataItem = SwitchType($compareTo, struct {
         x2: i32,
         x3: f32,
         x4: []u8,
-        x5: slot,
+        x5: ?Slot,
         x6: struct {
     x: i32,
     y: i32,
@@ -41,9 +36,7 @@ pub const entityMetadataItem = SwitchType($compareTo, struct {
     roll: f32,
 },
         default: void,
-    }),
-
-pub const entityMetadata = EntityMetadata,
+    });
 
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
@@ -183,7 +176,7 @@ pub const play = struct {
         pub const EntityEquipment = struct {
             entityId: i32,
             slot: i16,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const SpawnPosition = struct {
@@ -530,12 +523,12 @@ undefined
         pub const SetSlot = struct {
             windowId: i8,
             slot: i16,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const WindowItems = struct {
             windowId: u8,
-            items: ArrayType(i16, slot),
+            items: ArrayType(i16, ?Slot),
         };
 
         pub const CraftProgressBar = struct {
@@ -858,7 +851,7 @@ undefined
         pub const BlockPlace = struct {
             location: UNKNOWN_SIMPLE_TYPE(position_ibi),
             direction: i8,
-            heldItem: slot,
+            heldItem: ?Slot,
             cursorX: i8,
             cursorY: i8,
             cursorZ: i8,
@@ -896,7 +889,7 @@ undefined
             mouseButton: i8,
             action: i16,
             mode: i8,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const Transaction = struct {
@@ -907,7 +900,7 @@ undefined
 
         pub const SetCreativeSlot = struct {
             slot: i16,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const EnchantItem = struct {

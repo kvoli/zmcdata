@@ -1,15 +1,10 @@
-pub const string = []u8,
-
-pub const slot = struct {
-    blockId: i16,
-undefined
-},
+pub const string = []u8;
 
 pub const position = packed struct {
         x: i26,
         y: i12,
         z: i26,
-    },
+    };
 
 pub const entityMetadataItem = SwitchType($compareTo, struct {
         x0: i8,
@@ -17,7 +12,7 @@ pub const entityMetadataItem = SwitchType($compareTo, struct {
         x2: f32,
         x3: []u8,
         x4: []u8,
-        x5: slot,
+        x5: ?Slot,
         x6: bool,
         x7: struct {
     pitch: f32,
@@ -31,9 +26,7 @@ pub const entityMetadataItem = SwitchType($compareTo, struct {
         x12: varint,
         x13: nbt,
         default: void,
-    }),
-
-pub const entityMetadata = EntityMetadata,
+    });
 
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
@@ -241,7 +234,7 @@ pub const play = struct {
                     displayData: ?struct {
                         title: []u8,
                         description: []u8,
-                        icon: slot,
+                        icon: ?Slot,
                         frameType: varint,
                         flags: i32,
                         backgroundTexture: ?[]u8,
@@ -365,7 +358,7 @@ pub const play = struct {
 
         pub const WindowItems = struct {
             windowId: u8,
-            items: ArrayType(i16, slot),
+            items: ArrayType(i16, ?Slot),
         };
 
         pub const CraftProgressBar = struct {
@@ -377,7 +370,7 @@ pub const play = struct {
         pub const SetSlot = struct {
             windowId: i8,
             slot: i16,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const SetCooldown = struct {
@@ -742,7 +735,7 @@ pub const play = struct {
         pub const EntityEquipment = struct {
             entityId: varint,
             slot: varint,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const Experience = struct {
@@ -1092,12 +1085,12 @@ pub const play = struct {
             windowId: u8,
             actionNumber: u16,
             returnEntry: ArrayType(u16, struct {
-                item: slot,
+                item: ?Slot,
                 craftingSlot: u8,
                 playerSlot: u8,
             }),
             prepareEntry: ArrayType(u16, struct {
-                item: slot,
+                item: ?Slot,
                 craftingSlot: u8,
                 playerSlot: u8,
             }),
@@ -1143,7 +1136,7 @@ pub const play = struct {
             mouseButton: i8,
             action: i16,
             mode: i8,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const CloseWindow = struct {
@@ -1268,7 +1261,7 @@ pub const play = struct {
 
         pub const SetCreativeSlot = struct {
             slot: i16,
-            item: slot,
+            item: ?Slot,
         };
 
         pub const UpdateSign = struct {
