@@ -4,8 +4,7 @@ const Allocator = mem.Allocator;
 const io = std.io;
 
 const serde = @import("serde.zig");
-const serde = @import("utils.zig");
-const utils = utils;
+const utils = @import("utils.zig");
 
 pub const Tag = union(enum(u8)) {
     end: void,
