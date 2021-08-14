@@ -152,7 +152,7 @@ const parseSimpleType = (t) => {
     case "UUID":
       return "UUID";
     case "void":
-      return "null";
+      return "void";
     case "restBuffer":
       return "[]u8";
     case "string":
@@ -225,6 +225,7 @@ const parseContainer = (t, i) => {
   return out + indent(i - 1) + "}";
 };
 
+// if we have a switch on the same field in the same scope, then we should combine the output
 const parseSwitch = (t, i) => {
   var out = _pprint(0, `SwitchType(${t.compareTo.split("/").pop()}, struct {`);
   objectMap(t.fields, (k, v) => {
