@@ -1,27 +1,62 @@
 const fs = require("fs");
 
+// TODO ztsd for internal packet compression (not to client).
+
 const blacklisted_packets = new Set([
   "packet_declare_commands",
   "packet_declare_recipes",
 ]);
 
-fs.readFile(
-  "./minecraft-data/data/pc/1.17/protocol.json",
-  "utf-8",
-  (err, jsonString) => {
-    const data = JSON.parse(jsonString);
-    //whatever other code you may fanacy
-    objectMap(data, (k, v) => {
-      //console.log(k, v);
-      parseState(k, v);
+var buffer = "";
+
+const allVersions = () => {
+  fs.readdir("./minecraft-data/data/pc", (err, files) => {
+    files.map((v) => {
+      doVersion(v);
     });
-  }
-);
+  });
+};
+
+allVersions();
+
+const parseTypeDecls = (data) => {
+  objectMap(data, (k, v) => {
+    if (v !== "native") {
+      pprint(0, `pub const ${k} = ${parseType(v, 1)},`);
+      pprint(0, "");
+    }
+  });
+};
+
+const doVersion = (v) => {
+  fs.readFile(
+    `./minecraft-data/data/pc/${v}/protocol.json`,
+    "utf-8",
+    (err, jsonString) => {
+      if (jsonString != undefined) {
+        try {
+          console.log("parsing ", v);
+          const data = JSON.parse(jsonString);
+          objectMap(data, (k, v) => {
+            parseState(k, v);
+          });
+          if (!fs.readdirSync(`./impl`).some((x) => x === `${v}`)) {
+            fs.mkdirSync(`./impl/${v}`);
+          }
+          fs.writeFileSync(`./impl/${v}/protocol.zig`, buffer);
+        } catch (e) {
+          console.log("error parsing proto ", e);
+        }
+        buffer = "";
+      }
+    }
+  );
+};
 
 const _pprint = (i, s) => indent(i) + s + "\n";
 
 const pprint = (i, s) => {
-  process.stdout.write(_pprint(i, s));
+  buffer += _pprint(i, s);
 };
 
 const indent = (i) => {
@@ -36,6 +71,7 @@ var statemap = {};
 
 const parseState = (stateName, data) => {
   if (stateName == "types") {
+    parseTypeDecls(data);
     return;
   }
   pprint(0, `pub const ${stateName} = struct {`);
@@ -136,6 +172,8 @@ const parseComplexType = (t, i) => {
       return "NBT?";
     case "buffer":
       return "[]u8";
+    case "pstring":
+      return "[]u8";
     default:
       return `UNKNOWN_COMPLEX_TYPE(${decl})`;
   }
@@ -218,10 +256,14 @@ const parseBitField = (t, i) => {
 
 const parseContainer = (t, i) => {
   var out = _pprint(0, "struct {");
-  t.map(
-    (field) =>
-      (out += _pprint(i, `${field.name}: ${parseType(field.type, i + 1)},`))
-  );
+  t.map((field) => {
+    if (field.anon !== undefined && field.anon) {
+      out += _pprint(`${parseType(field.type, i + 1)},`);
+    } else {
+      // non anon
+      out += _pprint(i, `${field.name}: ${parseType(field.type, i + 1)},`);
+    }
+  });
   return out + indent(i - 1) + "}";
 };
 
