@@ -2,305 +2,195 @@ const std = @import("std");
 const mem = std.mem;
 const Allocator = mem.Allocator;
 
-const zlm = @import("zlm").specializeOn(f64);
+const utils = @import("utils.zig");
 
-pub const VarIntError = error{
-    VarIntTooLargeError,
-    VarLongTooLargeError,
+const SerializationError = error{
+    NoAutoSerialized,
 };
 
-pub fn oreadVarInt(reader: anytype) !i32 {
-    var result: u32 = 0;
-
-    var num_read: u32 = 0;
-    var read = try reader.readByte();
-
-    while ((read & 0b10000000) != 0) {
-        var value: u32 = (read & 0b01111111);
-        result |= (value << @intCast(u5, 7 * num_read));
-
-        num_read += 1;
-        read = try reader.readByte();
+pub fn primativeSerialize(value: anytype, writer: anytype) anyerror!void {
+    switch (@TypeOf(value)) {
+        bool => try writer.writeByte(@boolToInt(value)),
+        u8 => try writer.writeByte(value),
+        i16, i32, i64, i128, u16, u32, u64, u128 => |t| try writer.writeIntBig(t, value),
+        f32 => try writer.writeIntBig(i32, @floatToInt(i32, value)),
+        f64 => try writer.writeIntBig(i64, @floatToInt(i64, value)),
+        else => SerializationError.NoAutoSerialized,
     }
-    var value: u32 = (read & 0b01111111);
-    result |= (value << @intCast(u5, 7 * num_read));
-
-    return @bitCast(i32, result);
 }
 
-pub fn readVarInt(reader: anytype) !i32 {
-    return (try readVarIntCounter(reader))[0];
-}
-
-pub fn readVarIntCounter(reader: anytype) ![]i32 {
-    var num_read: u32 = 0;
-    var result: u32 = 0;
-    var read: u8 = undefined;
-    while (true) {
-        read = try reader.readByte();
-        var value: u32 = (read & 0b01111111);
-        result |= (value << @intCast(u5, 7 * num_read));
-        num_read += 1;
-        if (num_read > 5) return VarIntError.VarIntTooLargeError;
-        if ((read & 0b10000000) == 0) break;
+pub fn primativeDeserialize(comptime T: type, reader: anytype) anyerror!T {
+    switch (T) {
+        bool => return ((try reader.readByte()) == 1),
+        u8 => return try reader.readByte(),
+        i16, i32, i64, i128, u16, u32, u64, u128 => |t| return try reader.readIntBig(t),
+        f32 => return @bitCast(f32, try reader.readIntBig(i32)),
+        f64 => return @bitCast(f64, try reader.readIntBig(i64)),
+        else => return SerializationError.NoAutoSerialized,
     }
-    return &[_]i32{ @bitCast(i32, result), @intCast(i32, num_read) };
 }
 
-pub fn readVarLong(reader: anytype) !i64 {
-    return (try readVarLongCounter(reader))[0];
-}
-
-pub fn readVarLongCounter(reader: anytype) ![]i64 {
-    var num_read: u32 = 0;
-    var result: u64 = 0;
-    var read: u8 = undefined;
-    while (true) {
-        read = try reader.readByte();
-        var value: u64 = (read & 0b01111111);
-        result |= (value << @intCast(u6, 7 * num_read));
-        num_read += 1;
-        if (num_read > 10) return VarIntError.VarLongTooLargeError;
-        if ((read & 0b10000000) == 0) break;
-    }
-
-    return &[_]i64{ @bitCast(i64, result), @intCast(i64, num_read) };
-}
-pub fn readVarByteArray(alloc: *Allocator, reader: anytype) ![]u8 {
-    return try readByteArray(alloc, reader, try readVarInt(reader));
-}
-
-pub fn readByteArray(alloc: *Allocator, reader: anytype, length: i32) ![]u8 {
-    var buf = try alloc.alloc(u8, @intCast(usize, length));
-    var strm = std.io.fixedBufferStream(buf);
-    var wr = strm.writer();
-
-    var i: usize = 0;
-    while (i < length) : (i += 1) {
-        try wr.writeByte(try reader.readByte());
-    }
-
-    return buf;
-}
-
-pub fn writeVarInt(writer: anytype, value: i32) !void {
-    var tmp_value: u32 = @bitCast(u32, value);
-    var tmp: u8 = @truncate(u8, tmp_value) & 0b01111111;
-    while (true) {
-        tmp = @truncate(u8, tmp_value) & 0b01111111;
-        tmp_value >>= 7;
-
-        if (tmp_value != 0) {
-            tmp |= 0b10000000;
+// we want to have a two funcs:
+// (ctx: Context, writer: anytype, alloc: *Allocator) anyerror!void
+// (ctx: Context, reader: anytype, alloc: *Allocator) anyerror!void
+pub fn Serde(comptime Context: type) type {
+    return struct {
+        pub fn ser(context: Context, writer: anytype, alloc: *Allocator) anyerror!void {
+            try defaultSerialize(context, writer, alloc);
         }
-        try writer.writeByte(tmp);
-        if (tmp_value == 0) break;
-    }
-}
 
-pub fn writeVarLong(writer: anytype, value: i64) !void {
-    var tmp_value: u64 = @bitCast(u64, value);
-    var tmp: u8 = @truncate(u8, tmp_value) & 0b01111111;
-    while (true) {
-        tmp = @truncate(u8, tmp_value) & 0b01111111;
-        tmp_value >>= 7;
-
-        if (tmp_value != 0) {
-            tmp |= 0b10000000;
+        pub fn de(context: Context, reader: anytype, alloc: *Allocator) anyerror!void {
+            context.* = try defaultDeserialize(@typeInfo(Context).Pointer.child, reader, alloc);
         }
-        try writer.writeByte(tmp);
-        if (tmp_value == 0) break;
+    };
+}
+
+/// Takes an type value, an anytype implementing the io.Writer iface, and an allocator
+/// reads the value into a (default stack) const using a default method or returns SerializationError
+///
+/// if a fn deserialize(reader: anytype, alloc: *Allocator) anyerror!Context exists
+/// use that instead (only for struct and union types)
+pub fn defaultDeserialize(comptime T: type, reader: anytype, alloc: *Allocator) anyerror!T {
+    switch (@typeInfo(T)) {
+        .Bool, .Int, .ComptimeInt, .Float, .ComptimeFloat => return try primativeDeserialize(T, reader),
+        .Struct => |struct_info| {
+            switch (@hasDecl(T, "deserialize")) {
+                true => return try T.deserialize(reader, alloc),
+                false => {
+                    var value = std.mem.zeroes(T);
+                    inline for (struct_info.fields) |field| {
+                        @field(value, field.name) = try defaultDeserialize(field.field_type, reader, alloc);
+                    }
+                    return value;
+                },
+            }
+        },
+        .Union => |union_info| {
+            switch (@hasDecl(T, "deserialize")) {
+                true => return try T.deserialize(reader, alloc),
+                false => {
+                    // will attempt to read an enum (u8) tag to decide what to do next, else undecidable
+                    if (union_info.tag_type) |UnionTag| {
+                        const enumTag = try std.meta.intToEnum(UnionTag, try reader.readByte());
+                        inline for (union_info.fields) |field| {
+                            if (@field(UnionTag, field.name) == enumTag) {
+                                return @unionInit(T, field.name, try defaultDeserialize(field.field_type, reader, alloc));
+                            }
+                        }
+                    }
+                    return SerializationError.NoAutoSerialized;
+                },
+            }
+        },
+        .Enum => |struct_info| {
+            switch (@hasDecl(T, "deserialize")) {
+                true => return try T.deserialize(reader, alloc),
+                false => {
+                    // only works with int types -- need to add assertion / check here
+                    return @intToEnum(T, try defaultDeserialize(struct_info.tag_type, reader, alloc));
+                },
+            }
+        },
+        .Pointer => |ptr_info| {
+            switch (ptr_info.size) {
+                .Slice => {
+                    switch (ptr_info.child) {
+                        u8 => return try utils.readVarByteArray(alloc, reader),
+                        else => |child_type| {
+                            const len = try utils.readVarInt(reader);
+                            var value = std.mem.zeroes([len]child_type);
+                            inline for (value) |v, i| {
+                                value[i] = try defaultDeserialize(child_type, reader, alloc);
+                            }
+                            return value;
+                        },
+                    }
+                },
+                .One => {
+                    switch (@hasDecl(ptr_info.child, "deserialize")) {
+                        true => return try T.deserialize(reader, alloc),
+                        false => return try defaultDeserialize(ptr_info.child, reader, alloc),
+                    }
+                },
+                else => return SerializationError.NoAutoSerialized,
+            }
+        },
+        .Optional => |opt_info| {
+            switch (try reader.readByte()) {
+                0 => return null,
+                1 => return try defaultDeserialize(opt_info.child, reader, alloc),
+                else => return SerializationError.NoAutoSerialized,
+            }
+        },
+        else => return SerializationError.NoAutoSerialized,
     }
 }
 
-pub fn writeByteArray(writer: anytype, data: []const u8) !void {
-    try writeVarInt(writer, @intCast(i32, data.len));
-    try writer.writeAll(data);
-}
-
-pub fn writeJSONStruct(value: anytype, writer: anytype, alloc: *Allocator) !void {
-    var array_list = std.ArrayList(u8).init(alloc);
-    defer array_list.deinit();
-
-    try std.json.stringify(value, .{}, array_list.outStream());
-
-    try writeByteArray(writer, array_list.toOwnedSlice());
-}
-
-pub fn readJSONStruct(comptime T: type, reader: anytype, alloc: *Allocator) !T {
-    var byteArray = try readJSONHelper(reader, alloc);
-    const ret = try std.json.parse(T, &std.json.TokenStream.init(byteArray), std.json.ParseOptions{});
-    return ret;
-}
-
-// readJSONHelper read a byte at a time, stopping when the stack is complete
-// or invalid
-pub fn readJSONHelper(reader: anytype, alloc: *Allocator) ![]u8 {
-    var byte: u8 = undefined;
-    var array_list = std.ArrayList(u8).init(alloc);
-    var curl_stack: i32 = @intCast(i32, 0);
-    var sq_stack: i32 = @intCast(i32, 0);
-    defer array_list.deinit();
-
-    while (true) : (byte = try reader.readByte()) {
-        switch (byte) {
-            '{' => {
-                curl_stack += 1;
-            },
-            '}' => {
-                curl_stack -= 1;
-            },
-            '[' => {
-                sq_stack += 1;
-            },
-            ']' => {
-                sq_stack -= 1;
-            },
-            else => {},
-        }
-        if (curl_stack < 0 or sq_stack < 0) return InvalidJsonError.InvalidJson;
-        try array_list.append(byte);
-        if (curl_stack == 0 and sq_stack == 0) break;
+/// Takes an anytype value, and an antype implementing the io.Writer iface
+/// writes the value into the writer using a default method or returns SerializationError
+pub fn defaultSerialize(value: anytype, writer: anytype, alloc: *Allocator) anyerror!void {
+    switch (@typeInfo(@TypeOf(value))) {
+        .Bool, .Int, .ComptimeInt, .Float, .ComptimeFloat => return try primativeSerialize(value, writer),
+        .Struct => |struct_info| {
+            switch (@hasDecl(@TypeOf(value), "serialize")) {
+                true => try value.serialize(writer, alloc),
+                false => inline for (struct_info.fields) |field| {
+                    try defaultSerialize(@field(value, field.name), writer, alloc);
+                },
+            }
+        },
+        .Enum => |struct_info| {
+            switch (@hasDecl(@TypeOf(value), "serialize")) {
+                true => return try value.serialize(writer),
+                false => {
+                    // only works with int types -- need to add assertion / check here
+                    try defaultSerialize(@enumToInt(value), writer, alloc);
+                },
+            }
+        },
+        .Union => |union_info| {
+            switch (@hasDecl(@TypeOf(value), "serialize")) {
+                true => try value.serialize(writer),
+                false => {
+                    const activeTag = std.meta.activeTag(value);
+                    if (union_info.tag_type) |UnionTag| {
+                        inline for (union_info.fields) |field| {
+                            if (@field(UnionTag, field.name) == activeTag) {
+                                return try defaultSerialize(@field(value, field.name), writer, alloc);
+                            }
+                        }
+                    }
+                },
+            }
+        },
+        .Pointer => |ptr_info| {
+            switch (ptr_info.size) {
+                .Slice => {
+                    switch (ptr_info.child) {
+                        u8 => try utils.writeByteArray(writer, value),
+                        else => {
+                            try utils.writeVarInt(writer, std.mem.len(value));
+                            inline for (values) |v| {
+                                try defaultSerialize(v, writer, alloc);
+                            }
+                        },
+                    }
+                },
+                .One => {
+                    switch (@hasDecl(ptr_info.child, "serialize")) {
+                        true => try value.serialize(writer),
+                        false => try defaultSerialize(value.*, writer, alloc),
+                    }
+                },
+                else => return SerializationError.NoAutoSerialized,
+            }
+        },
+        .Optional => |opt_info| {
+            if (value) |v| {
+                try writer.writeByte(1);
+                try defaultSerialize(v, writer, alloc);
+            } else try writer.writeByte(0);
+        },
+        else => return SerializationError.NoAutoSerialized,
     }
-    return array_list.toOwnedSlice();
-}
-
-const InvalidJsonError = error{
-    InvalidJson,
-};
-
-pub inline fn toPacketPosition(vec: zlm.Vec3) u64 {
-    return (@as(u64, @bitCast(u32, @floatToInt(i32, vec.x) & 0x3FFFFFF)) << 38) | (@as(u64, @bitCast(u32, @floatToInt(i32, vec.z) & 0x3FFFFFF)) << 12) | (@as(u64, @bitCast(u32, @floatToInt(i32, vec.y))) & 0xFFF);
-}
-
-const testing = std.testing;
-
-fn testWriteHelper(varInt: i32, expected: []u8) !void {
-    var array_list = std.ArrayList(u8).init(testing.allocator);
-    var writer = array_list.writer();
-    try writeVarInt(writer, varInt);
-    const slice = array_list.toOwnedSlice();
-    defer testing.allocator.free(slice);
-    try testing.expectEqualSlices(u8, expected, slice);
-}
-
-fn testReadHelper(expected: i32, varInt: []u8) !void {
-    var buf = std.io.fixedBufferStream(varInt);
-    const out: i32 = try readVarInt(buf.reader());
-    try std.testing.expectEqual(expected, out);
-}
-
-test "test writeVarInt" {
-    var test1 = [_]u8{0x00};
-    var test2 = [_]u8{0x01};
-    var test3 = [_]u8{0x02};
-    var test4 = [_]u8{0x7f};
-    var test5 = [_]u8{ 0x80, 0x01 };
-    var test6 = [_]u8{ 0xff, 0x01 };
-    var test7 = [_]u8{ 0xff, 0xff, 0x7f };
-    var test8 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x07 };
-    var test9 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x0f };
-    var test10 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0x08 };
-
-    try testWriteHelper(0, &test1);
-    try testWriteHelper(1, &test2);
-    try testWriteHelper(2, &test3);
-    try testWriteHelper(127, &test4);
-    try testWriteHelper(128, &test5);
-    try testWriteHelper(255, &test6);
-    try testWriteHelper(2097151, &test7);
-    try testWriteHelper(2147483647, &test8);
-    try testWriteHelper(-1, &test9);
-    try testWriteHelper(-2147483648, &test10);
-}
-
-test "test readVarInt" {
-    var test1 = [_]u8{0x00};
-    var test2 = [_]u8{0x01};
-    var test3 = [_]u8{0x02};
-    var test4 = [_]u8{0x7f};
-    var test5 = [_]u8{ 0x80, 0x01 };
-    var test6 = [_]u8{ 0xff, 0x01 };
-    var test7 = [_]u8{ 0xff, 0xff, 0x7f };
-    var test8 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x07 };
-    var test9 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x0f };
-    var test10 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0x08 };
-
-    try testReadHelper(0, &test1);
-    try testReadHelper(1, &test2);
-    try testReadHelper(2, &test3);
-    try testReadHelper(127, &test4);
-    try testReadHelper(128, &test5);
-    try testReadHelper(255, &test6);
-    try testReadHelper(2097151, &test7);
-    try testReadHelper(2147483647, &test8);
-    try testReadHelper(-1, &test9);
-    try testReadHelper(-2147483648, &test10);
-}
-
-fn testLongWriteHelper(varLong: i64, expected: []u8) !void {
-    var array_list = std.ArrayList(u8).init(testing.allocator);
-    var writer = array_list.writer();
-    try writeVarLong(writer, varLong);
-    const slice = array_list.toOwnedSlice();
-    defer testing.allocator.free(slice);
-    try testing.expectEqualSlices(u8, expected, slice);
-}
-
-fn testLongReadHelper(expected: i64, varLong: []u8) !void {
-    var buf = std.io.fixedBufferStream(varLong);
-    const out: i64 = try readVarLong(buf.reader());
-    try std.testing.expectEqual(expected, out);
-}
-
-test "test writeVarLong" {
-    var test1 = [_]u8{0x00};
-    var test2 = [_]u8{0x01};
-    var test3 = [_]u8{0x02};
-    var test4 = [_]u8{0x7f};
-    var test5 = [_]u8{ 0x80, 0x01 };
-    var test6 = [_]u8{ 0xff, 0x01 };
-    var test7 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x07 };
-    var test8 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f };
-    var test9 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01 };
-    var test10 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0xf8, 0xff, 0xff, 0xff, 0xff, 0x01 };
-    var test11 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01 };
-
-    try testLongWriteHelper(0, &test1);
-    try testLongWriteHelper(1, &test2);
-    try testLongWriteHelper(2, &test3);
-    try testLongWriteHelper(127, &test4);
-    try testLongWriteHelper(128, &test5);
-    try testLongWriteHelper(255, &test6);
-    try testLongWriteHelper(2147483647, &test7);
-    try testLongWriteHelper(9223372036854775807, &test8);
-    try testLongWriteHelper(-1, &test9);
-    try testLongWriteHelper(-2147483648, &test10);
-    try testLongWriteHelper(-9223372036854775808, &test11);
-}
-
-test "test readVarLong" {
-    var test1 = [_]u8{0x00};
-    var test2 = [_]u8{0x01};
-    var test3 = [_]u8{0x02};
-    var test4 = [_]u8{0x7f};
-    var test5 = [_]u8{ 0x80, 0x01 };
-    var test6 = [_]u8{ 0xff, 0x01 };
-    var test7 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0x07 };
-    var test8 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f };
-    var test9 = [_]u8{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01 };
-    var test10 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0xf8, 0xff, 0xff, 0xff, 0xff, 0x01 };
-    var test11 = [_]u8{ 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x01 };
-
-    try testLongReadHelper(0, &test1);
-    try testLongReadHelper(1, &test2);
-    try testLongReadHelper(2, &test3);
-    try testLongReadHelper(127, &test4);
-    try testLongReadHelper(128, &test5);
-    try testLongReadHelper(255, &test6);
-    try testLongReadHelper(2147483647, &test7);
-    try testLongReadHelper(9223372036854775807, &test8);
-    try testLongReadHelper(-1, &test9);
-    try testLongReadHelper(-2147483648, &test10);
-    try testLongReadHelper(-9223372036854775808, &test11);
 }
