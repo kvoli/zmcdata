@@ -12,7 +12,91 @@ pub fn ArrayType(comptime countType: type, comptime fieldType: type) type {
     };
 }
 
-pub fn SwitchType(comptime compareField: type, comptime fields: type) type {
+/// switch packets that need to be handled
+/// =============================
+///
+/// packet_advancements
+/// -----------------------------
+///
+///     switchType: bitfield
+///     directlyAbove: true
+///
+/// packet_declare_commands
+/// -----------------------------
+///
+///     switchType: bitfield
+///     directlyAbove: false **
+///
+/// packet_boss_bar
+/// -----------------------------
+///
+///     switchType: varint
+///     directlyAbove: true
+///
+/// packet_face_player
+/// -----------------------------
+///
+///     switchType: bool
+///     directlyAbove: true
+///
+/// packet_map 
+/// -----------------------------
+///
+///     switchType: u8
+///     directlyAbove: true
+///
+/// packet_player_info
+/// -----------------------------
+///
+///     switchType: varint
+///     directlyAbove: false - nested scope above  **
+///
+/// packet_unlock_recipes
+/// -----------------------------
+///
+///     switchType: varint
+///     directlyAbove: false **
+///
+/// packet_scoreboard_objective
+/// -----------------------------
+///
+///     switchType: i8
+///     directlyAbove: true
+///
+/// packet_teams
+/// -----------------------------
+///
+///     switchType: i8
+///     directlyAbove: true
+///
+/// packet_scoreboard_score
+/// -----------------------------
+///
+///     switchType: i8
+///     directlyAbove: false **
+///
+/// packet_stop_sound
+/// -----------------------------
+///
+///     switchType: i8
+///     directlyAbove: true
+///
+/// packet_declare_recipes
+/// -----------------------------
+///
+///     switchType: string
+///     directlyAbove: true
+///
+/// packet_sculk_vibration_signal
+/// -----------------------------
+///
+///     switchType: string
+///     directlyAbove: true
+///
+/// string -> union(enum) {  }
+/// i8/varint/u8 -> union(enum(u8)) {  }
+/// bitfield -> SwitchType makes sense here.
+pub fn SwitchType(comptime compareType: type, comptime fields: type) type {
     return struct {};
 }
 

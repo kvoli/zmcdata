@@ -211,6 +211,29 @@ pub fn WireProto(
     };
 }
 
+pub fn _(comptime T: type) type {
+    return struct {
+        pub fn serialize(value: T, alloc: *mem.Allocator) !*Packet {
+            const base = try alloc.create(Packet);
+            base.id = @enumToInt(std.meta.activeTag(value));
+
+            var array_list = std.ArrayList(u8).init(alloc);
+            defer array_list.deinit();
+
+            try defaultSerialize(value, array_list.writer(), alloc);
+
+            base.data = array_list.toOwnedSlice();
+            base.length = @intCast(i32, self.base.data.len) + 1;
+            return base;
+        }
+
+        pub fn deserialize(packet: *Packet, alloc: *mem.Allocator) !T {
+            const reader = packet.toStream().reader();
+            return try defaultDeserialize(@typeInfo(T).Pointer.child, reader, alloc);
+        }
+    };
+}
+
 const testing = std.testing;
 const a = testing.allocator;
 
