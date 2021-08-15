@@ -5,10 +5,25 @@ const Allocator = mem.Allocator;
 const utils = @import("utils.zig");
 const zlm = @import("zlm");
 
-pub fn ArrayType(comptime countType: type, comptime fieldType: type) type {
+pub fn Array(comptime countType: type, comptime fieldType: type) type {
     return struct {
         count_type: type,
         fields: []fieldType,
+    };
+}
+
+// for types where the match is not necessarily directly above
+pub fn Match(match: []const u8, comptime T: type) type {
+    return struct {
+        fields: T,
+
+        pub fn serialize(self: Self, writer: anytype, alloc: *Allocator) anyerror!void {
+            try utils.writeVarInt(writer, in(self.int));
+        }
+
+        pub fn deserialize(reader: anytype, alloc: *Allocator) anyerror!Self {
+            return @This(){ .int = out(try utils.readVarInt(reader)) };
+        }
     };
 }
 

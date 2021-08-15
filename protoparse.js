@@ -251,8 +251,6 @@ const parseContainer = (t, i, stack) => {
   return out + indent(i - 1) + "}";
 };
 
-const parseParticleData = (impl, i, stack) => {};
-
 // if we have a switch on the same field in the same scope, then we should combine the output
 const parseSwitch = (t, i, stack) => {
   if (stack.length == 0 || !switched) return "";
@@ -263,7 +261,7 @@ const parseSwitch = (t, i, stack) => {
   objectMap(fields, (k, v) => {
     let val = getSwitchedStruct(i + 1, v);
     if (val !== "") {
-      out += _pprint(i + 1, `x${k}: ${val}`);
+      out += _pprint(i + 1, `@"${k}": ${val}`);
     }
   });
 
@@ -294,12 +292,12 @@ const remapSwitch = (scope) => {
         if (fields[k] === undefined) fields[k] = [[e.name, v]];
         else fields[k] = [...fields[k], [e.name, v]];
       });
-      if (e.type[1].default !== undefined && e.type[1].default !== "void") {
-        if (fields["default"] === undefined)
-          fields["default"] = [[e.name, e.type[1].default]];
+      if (e.type[1].default !== undefined) {
+        if (fields[`default`] === undefined)
+          fields[`default`] = [[e.name, e.type[1].default]];
         else
-          fields["default"] = [
-            ...fields["default"],
+          fields[`default`] = [
+            ...fields[`default`],
             [e.name, e.type[1].default],
           ];
       }
@@ -348,8 +346,8 @@ const filterDecl = (decl) => {
   var out = "";
   if (decl === "type") {
     out = "typed";
-  } else if (decl === "xdefault") {
-    out = "default";
+  } else if (decl === "default") {
+    out = `default`;
   } else {
     out = decl;
   }

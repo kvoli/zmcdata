@@ -229,24 +229,24 @@ pub const play = struct {
             entity_uuid: UUID,
             action: vi,
             title: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     title: []u8,
                     health: f32,
                     color: vi,
                     dividers: vi,
                     flags: u8,
                 },
-                x2: struct {
+                @"2": struct {
                     health: f32,
                 },
-                x3: struct {
+                @"3": struct {
                     title: []u8,
                 },
-                x4: struct {
+                @"4": struct {
                     color: vi,
                     dividers: vi,
                 },
-                x5: struct {
+                @"5": struct {
                     flags: u8,
                 },
         },
@@ -291,7 +291,7 @@ pub const play = struct {
             window_title: []u8,
             slot_count: u8,
             entity_id: union(enum(u8)) {
-                xEntityHorse: struct {
+                @"EntityHorse": struct {
                     entity_id: i32,
                 },
         },
@@ -409,7 +409,7 @@ pub const play = struct {
             },
             columns: i8,
             rows: union(enum(u8)) {
-                xdefault: struct {
+                @"default": struct {
                     rows: i8,
                     x: i8,
                     y: i8,
@@ -468,11 +468,11 @@ pub const play = struct {
         pub const CombatEvent = struct {
             event: vi,
             duration: union(enum(u8)) {
-                x1: struct {
+                @"1": struct {
                     duration: vi,
                     entity_id: i32,
                 },
-                x2: struct {
+                @"2": struct {
                     player_id: vi,
                     entity_id: i32,
                     message: []u8,
@@ -524,19 +524,19 @@ pub const play = struct {
         pub const WorldBorder = struct {
             action: vi,
             radius: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     radius: f64,
                 },
-                x1: struct {
+                @"1": struct {
                     old_radius: f64,
                     new_radius: f64,
                     speed: vi,
                 },
-                x2: struct {
+                @"2": struct {
                     x: f64,
                     z: f64,
                 },
-                x3: struct {
+                @"3": struct {
                     x: f64,
                     z: f64,
                     old_radius: f64,
@@ -546,10 +546,10 @@ pub const play = struct {
                     warning_time: vi,
                     warning_blocks: vi,
                 },
-                x4: struct {
+                @"4": struct {
                     warning_time: vi,
                 },
-                x5: struct {
+                @"5": struct {
                     warning_blocks: vi,
                 },
         },
@@ -607,11 +607,11 @@ pub const play = struct {
             name: []u8,
             action: i8,
             display_text: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     display_text: []u8,
                     typed: []u8,
                 },
-                x2: struct {
+                @"2": struct {
                     display_text: []u8,
                     typed: []u8,
                 },
@@ -627,7 +627,7 @@ pub const play = struct {
             team: []u8,
             mode: i8,
             name: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     name: []u8,
                     prefix: []u8,
                     suffix: []u8,
@@ -637,7 +637,7 @@ pub const play = struct {
                     color: i8,
                     players: [][]u8,
                 },
-                x2: struct {
+                @"2": struct {
                     name: []u8,
                     prefix: []u8,
                     suffix: []u8,
@@ -646,10 +646,10 @@ pub const play = struct {
                     collision_rule: []u8,
                     color: i8,
                 },
-                x3: struct {
+                @"3": struct {
                     players: [][]u8,
                 },
-                x4: struct {
+                @"4": struct {
                     players: [][]u8,
                 },
         },
@@ -667,16 +667,16 @@ pub const play = struct {
         pub const Title = struct {
             action: vi,
             text: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     text: []u8,
                 },
-                x1: struct {
+                @"1": struct {
                     text: []u8,
                 },
-                x2: struct {
+                @"2": struct {
                     text: []u8,
                 },
-                x3: struct {
+                @"3": struct {
                     fade_in: i32,
                     stay: i32,
                     fade_out: i32,
@@ -954,10 +954,10 @@ pub const play = struct {
             target: vi,
             mouse: vi,
             x: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     hand: vi,
                 },
-                x2: struct {
+                @"2": struct {
                     x: f32,
                     y: f32,
                     z: f32,

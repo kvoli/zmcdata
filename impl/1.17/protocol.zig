@@ -8,9 +8,7 @@ pub const position = packed struct {
 
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
-    
-        pub const S2C = enum(u8) {
-        };
+        pub const S2C = enum(u8) {};
     };
 
     pub const c2s = union(C2S) {
@@ -27,7 +25,7 @@ pub const handshaking = struct {
 
         set_protocol: SetProtocol,
         legacy_server_list_ping: LegacyServerListPing,
-    
+
         pub const C2S = enum(u8) {
             set_protocol: 0x00,
             legacy_server_list_ping: 0xfe,
@@ -46,7 +44,7 @@ pub const status = struct {
 
         server_info: ServerInfo,
         ping: Ping,
-    
+
         pub const S2C = enum(u8) {
             server_info: 0x00,
             ping: 0x01,
@@ -54,8 +52,7 @@ pub const status = struct {
     };
 
     pub const c2s = union(C2S) {
-        pub const PingStart = struct {
-        };
+        pub const PingStart = struct {};
 
         pub const Ping = struct {
             time: i64,
@@ -63,7 +60,7 @@ pub const status = struct {
 
         ping_start: PingStart,
         ping: Ping,
-    
+
         pub const C2S = enum(u8) {
             ping_start: 0x00,
             ping: 0x01,
@@ -102,7 +99,7 @@ pub const login = struct {
         success: Success,
         compress: Compress,
         login_plugin_request: LoginPluginRequest,
-    
+
         pub const S2C = enum(u8) {
             disconnect: 0x00,
             encryption_begin: 0x01,
@@ -130,7 +127,7 @@ pub const login = struct {
         login_start: LoginStart,
         encryption_begin: EncryptionBegin,
         login_plugin_response: LoginPluginResponse,
-    
+
         pub const C2S = enum(u8) {
             login_start: 0x00,
             encryption_begin: 0x01,
@@ -227,17 +224,17 @@ pub const play = struct {
                             has_background_texture: u1,
                         },
                         background_texture: union(enum(u8)) {
-                                x1: struct {
-                                    background_texture: []u8,
-                                },
+                            @"1": struct {
+                                background_texture: []u8,
+                            },
                         },
                         x_cord: f32,
                         y_cord: f32,
                     },
                     criteria: []struct {
-                            key: []u8,
-                            value: void,
-                        },
+                        key: []u8,
+                        value: void,
+                    },
                     requirements: [][][]u8,
                 },
             },
@@ -245,9 +242,9 @@ pub const play = struct {
             progress_mapping: []struct {
                 key: []u8,
                 value: []struct {
-                        criterion_identifier: []u8,
-                        criterion_progress: ?i64,
-                    },
+                    criterion_identifier: []u8,
+                    criterion_progress: ?i64,
+                },
             },
         };
 
@@ -279,27 +276,27 @@ pub const play = struct {
             entity_uuid: UUID,
             action: vi,
             title: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     title: []u8,
                     health: f32,
                     color: vi,
                     dividers: vi,
                     flags: u8,
                 },
-                x2: struct {
+                @"2": struct {
                     health: f32,
                 },
-                x3: struct {
+                @"3": struct {
                     title: []u8,
                 },
-                x4: struct {
+                @"4": struct {
                     color: vi,
                     dividers: vi,
                 },
-                x5: struct {
+                @"5": struct {
                     flags: u8,
                 },
-        },
+            },
         };
 
         pub const Difficulty = struct {
@@ -324,11 +321,11 @@ pub const play = struct {
             z: f64,
             is_entity: bool,
             entity_id: union(enum(u8)) {
-                xtrue: struct {
+                @"true": struct {
                     entity_id: vi,
                     entity_feet_eyes: []u8,
                 },
-        },
+            },
         };
 
         pub const NbtQueryResponse = struct {
@@ -344,10 +341,10 @@ pub const play = struct {
 
         pub const MultiBlockChange = struct {
             chunk_coordinates: packed struct {
-            x: i22,
-            z: i22,
-            y: u20,
-        },
+                x: i22,
+                z: i22,
+                y: u20,
+            },
             not_trust_edges: bool,
             records: []vi,
         };
@@ -503,13 +500,13 @@ pub const play = struct {
             },
             columns: u8,
             rows: union(enum(u8)) {
-                xdefault: struct {
+                @"default": struct {
                     rows: u8,
                     x: u8,
                     y: u8,
                     data: []u8,
                 },
-        },
+            },
         };
 
         pub const TradeList = struct {
@@ -589,8 +586,7 @@ pub const play = struct {
             entity_id: i32,
         };
 
-        pub const EnterCombatEvent = struct {
-        };
+        pub const EnterCombatEvent = struct {};
 
         pub const DeathCombatEvent = struct {
             player_id: vi,
@@ -703,15 +699,15 @@ pub const play = struct {
             name: []u8,
             action: i8,
             display_text: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     display_text: []u8,
                     typed: vi,
                 },
-                x2: struct {
+                @"2": struct {
                     display_text: []u8,
                     typed: vi,
                 },
-        },
+            },
         };
 
         pub const SetPassengers = struct {
@@ -723,7 +719,7 @@ pub const play = struct {
             team: []u8,
             mode: i8,
             name: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     name: []u8,
                     friendly_fire: i8,
                     name_tag_visibility: []u8,
@@ -733,7 +729,7 @@ pub const play = struct {
                     suffix: []u8,
                     players: [][]u8,
                 },
-                x2: struct {
+                @"2": struct {
                     name: []u8,
                     friendly_fire: i8,
                     name_tag_visibility: []u8,
@@ -742,13 +738,13 @@ pub const play = struct {
                     prefix: []u8,
                     suffix: []u8,
                 },
-                x3: struct {
+                @"3": struct {
                     players: [][]u8,
                 },
-                x4: struct {
+                @"4": struct {
                     players: [][]u8,
                 },
-        },
+            },
         };
 
         pub const SpawnPosition = struct {
@@ -772,17 +768,17 @@ pub const play = struct {
         pub const StopSound = struct {
             flags: i8,
             source: union(enum(u8)) {
-                x1: struct {
+                @"1": struct {
                     source: vi,
                 },
-                x2: struct {
+                @"2": struct {
                     sound: []u8,
                 },
-                x3: struct {
+                @"3": struct {
                     source: vi,
                     sound: []u8,
                 },
-        },
+            },
         };
 
         pub const SoundEffect = struct {
@@ -822,10 +818,10 @@ pub const play = struct {
                 key: []u8,
                 value: f64,
                 modifiers: []struct {
-                        uuid: UUID,
-                        amount: f64,
-                        operation: i8,
-                    },
+                    uuid: UUID,
+                    amount: f64,
+                    operation: i8,
+                },
             },
         };
 
@@ -859,13 +855,13 @@ pub const play = struct {
             source_position: position,
             destination_identifier: []u8,
             destination: union(enum(u8)) {
-                xblock: struct {
+                @"block": struct {
                     destination: position,
                 },
-                xentityId: struct {
+                @"entityId": struct {
                     destination: vi,
                 },
-        },
+            },
             arrival_ticks: vi,
         };
 
@@ -1032,7 +1028,7 @@ pub const play = struct {
         entity_effect: EntityEffect,
         declare_recipes: DeclareRecipes,
         tags: Tags,
-    
+
         pub const S2C = enum(u8) {
             spawn_entity: 0x00,
             spawn_entity_experience_orb: 0x01,
@@ -1267,16 +1263,16 @@ pub const play = struct {
             target: vi,
             mouse: vi,
             x: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     hand: vi,
                 },
-                x2: struct {
+                @"2": struct {
                     x: f32,
                     y: f32,
                     z: f32,
                     hand: vi,
                 },
-        },
+            },
             sneaking: bool,
         };
 
@@ -1426,10 +1422,10 @@ pub const play = struct {
         pub const AdvancementTab = struct {
             action: vi,
             tab_id: union(enum(u8)) {
-                x0: struct {
+                @"0": struct {
                     tab_id: []u8,
                 },
-        },
+            },
         };
 
         pub const Pong = struct {
@@ -1484,7 +1480,7 @@ pub const play = struct {
         spectate: Spectate,
         block_place: BlockPlace,
         use_item: UseItem,
-    
+
         pub const C2S = enum(u8) {
             teleport_confirm: 0x00,
             query_block_nbt: 0x01,
