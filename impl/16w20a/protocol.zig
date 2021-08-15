@@ -1,32 +1,3 @@
-pub const string = []u8;
-
-pub const position = packed struct {
-        x: i26,
-        y: i12,
-        z: i26,
-    };
-
-pub const entityMetadataItem = SwitchType($compareTo, struct {
-        x0: i8,
-        x1: varint,
-        x2: f32,
-        x3: []u8,
-        x4: []u8,
-        x5: ?Slot,
-        x6: bool,
-        x7: struct {
-    pitch: f32,
-    yaw: f32,
-    roll: f32,
-},
-        x8: position,
-        x9: ?position,
-        x10: varint,
-        x11: ?UUID,
-        x12: varint,
-        default: void,
-    });
-
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
     
@@ -233,7 +204,7 @@ pub const play = struct {
         pub const TileEntityData = struct {
             location: position,
             action: u8,
-            nbtData: ?nbt,
+            nbtData: ?NBT,
         };
 
         pub const BlockAction = struct {

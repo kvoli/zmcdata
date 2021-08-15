@@ -1,5 +1,3 @@
-pub const string = []u8;
-
 pub const position_iii = struct {
     x: i32,
     y: i32,
@@ -17,26 +15,6 @@ pub const position_ibi = struct {
     y: u8,
     z: i32,
 };
-
-pub const entityMetadataItem = SwitchType($compareTo, struct {
-        x0: i8,
-        x1: i16,
-        x2: i32,
-        x3: f32,
-        x4: []u8,
-        x5: ?Slot,
-        x6: struct {
-    x: i32,
-    y: i32,
-    z: i32,
-},
-        x7: struct {
-    pitch: f32,
-    yaw: f32,
-    roll: f32,
-},
-        default: void,
-    });
 
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
@@ -180,7 +158,7 @@ pub const play = struct {
         };
 
         pub const SpawnPosition = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_iii),
+            location: position_iii,
         };
 
         pub const UpdateHealth = struct {
@@ -211,7 +189,7 @@ pub const play = struct {
 
         pub const Bed = struct {
             entityId: i32,
-            location: UNKNOWN_SIMPLE_TYPE(position_ibi),
+            location: position_ibi,
         };
 
         pub const Animation = struct {
@@ -285,7 +263,7 @@ pub const play = struct {
         pub const SpawnEntityPainting = struct {
             entityId: varint,
             title: []u8,
-            location: UNKNOWN_SIMPLE_TYPE(position_iii),
+            location: position_iii,
             direction: i32,
         };
 
@@ -407,7 +385,7 @@ pub const play = struct {
         pub const MultiBlockChange = struct {
             chunkX: i32,
             chunkZ: i32,
-            recordCount: UNKNOWN_COMPLEX_TYPE(count),
+            recordCount: ,
             dataLength: i32,
             records: ArrayType(undefined, struct {
 undefined
@@ -417,13 +395,13 @@ undefined
         };
 
         pub const BlockChange = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_ibi),
+            location: position_ibi,
             type: varint,
             metadata: u8,
         };
 
         pub const BlockAction = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_isi),
+            location: position_isi,
             byte1: u8,
             byte2: u8,
             blockId: varint,
@@ -431,13 +409,13 @@ undefined
 
         pub const BlockBreakAnimation = struct {
             entityId: varint,
-            location: UNKNOWN_SIMPLE_TYPE(position_iii),
+            location: position_iii,
             destroyStage: i8,
         };
 
         pub const MapChunkBulk = struct {
-            chunkColumnCount: UNKNOWN_COMPLEX_TYPE(count),
-            dataLength: UNKNOWN_COMPLEX_TYPE(count),
+            chunkColumnCount: ,
+            dataLength: ,
             skyLightSent: bool,
             compressedChunkData: []u8,
             meta: ArrayType(undefined, struct {
@@ -465,7 +443,7 @@ undefined
 
         pub const WorldEvent = struct {
             effectId: i32,
-            location: UNKNOWN_SIMPLE_TYPE(position_ibi),
+            location: position_ibi,
             data: i32,
             global: bool,
         };
@@ -544,7 +522,7 @@ undefined
         };
 
         pub const UpdateSign = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_isi),
+            location: position_isi,
             text1: []u8,
             text2: []u8,
             text3: []u8,
@@ -557,13 +535,13 @@ undefined
         };
 
         pub const TileEntityData = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_isi),
+            location: position_isi,
             action: u8,
-            nbtData: UNKNOWN_SIMPLE_TYPE(compressedNbt),
+            nbtData: compressedNbt,
         };
 
         pub const OpenSignEntity = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_iii),
+            location: position_iii,
         };
 
         pub const Statistics = struct {
@@ -844,12 +822,12 @@ undefined
 
         pub const BlockDig = struct {
             status: i8,
-            location: UNKNOWN_SIMPLE_TYPE(position_ibi),
+            location: position_ibi,
             face: i8,
         };
 
         pub const BlockPlace = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_ibi),
+            location: position_ibi,
             direction: i8,
             heldItem: ?Slot,
             cursorX: i8,
@@ -909,7 +887,7 @@ undefined
         };
 
         pub const UpdateSign = struct {
-            location: UNKNOWN_SIMPLE_TYPE(position_isi),
+            location: position_isi,
             text1: []u8,
             text2: []u8,
             text3: []u8,

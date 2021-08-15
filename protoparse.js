@@ -7,9 +7,30 @@ const blacklisted_packets = new Set([
   "packet_declare_recipes",
 ]);
 
-const blacklisted_typedecls = new Set(["slot", "entityMetadata"]);
+const blacklisted_typedecls = new Set([]);
+
+const typeMap = {};
+
+typeMap.option = (impl, i, obj) => parseOption(impl, i);
+typeMap.entityMetadataLoop = (impl, i, obj) => "EntityMetadata";
+typeMap.topBitSetTerminatedArray = (impl, i, obj) => parseTopBitArray(impl, i);
+typeMap.bitfield = (impl, i, obj) => parseBitField(impl, i);
+typeMap.container = (impl, i, obj) => parseContainer(impl, i);
+typeMap.switch = (impl, i, obj) => parseSwitch(impl, i);
+typeMap.array = (impl, i, obj) => parseArray(impl, i);
+typeMap.buffer = (impl, i, obj) => "[]u8";
+typeMap.string = (impl, i, obj) => "[]u8";
+typeMap.optvarint = (impl, i, obj) => "?varint";
+typeMap.varint = (impl, i, obj) => "varint";
+typeMap.pstring = (impl, i, obj) => "[]u8";
+typeMap.UUID = (impl, i, obj) => "UUID";
+typeMap.restBuffer = (impl, i, obj) => "[]u8";
+typeMap.slot = (impl, i, obj) => "?Slot";
+typeMap.optionalNbt = (impl, i, obj) => "?NBT";
+typeMap.entityMetadata = (impl, i, obj) => "EntityMetadata";
 
 var buffer = "";
+var decl = false;
 
 const allVersions = () => {
   fs.readdir("./minecraft-data/data/pc", (err, files) => {
@@ -22,12 +43,17 @@ const allVersions = () => {
 allVersions();
 
 const parseTypeDecls = (data) => {
+  decl = true;
   objectMap(data, (k, v) => {
-    if (v !== "native" && !blacklisted_typedecls.has(k)) {
+    if (blacklisted_typedecls.has(k) || k in typeMap) return;
+    if (v !== "native") {
       pprint(0, `pub const ${k} = ${parseType(v, 1)};`);
       pprint(0, "");
     }
+    typeMap[k] = (impl, i, obj) => k;
   });
+  decl = false;
+  console.log(JSON.stringify(Object.entries(typeMap)));
 };
 
 const doVersion = (v) => {
@@ -134,7 +160,12 @@ const parsePacket = (pkt, i) => {
 
 const parseType = (t, i) => {
   const isComplexType = Array.isArray(t);
-  return isComplexType ? parseComplexType(t, i) : parseSimpleType(t);
+  const decl = isComplexType ? t[0] : t;
+  if (typeMap[decl] === undefined) {
+    console.log("UNDEFINED", decl);
+    return "";
+  }
+  return isComplexType ? typeMap[decl](t[1], i) : typeMap[decl]();
 };
 
 const parsePacketMap = (pkt, i) => {
@@ -148,88 +179,6 @@ const parsePacketMap = (pkt, i) => {
     (e) => (out += e)
   );
   return out;
-};
-
-const parseComplexType = (t, i) => {
-  const decl = t[0];
-  const impl = t[1];
-  switch (decl) {
-    case "option":
-      return parseOption(impl, i);
-    case "entityMetadataLoop":
-      return "EntityMetadata";
-    case "topBitSetTerminatedArray":
-      return parseTopBitArray(impl, i);
-    case "bitfield":
-      return parseBitField(impl, i);
-    case "container":
-      return parseContainer(impl, i);
-    case "switch":
-      return parseSwitch(impl, i);
-    case "array":
-      return parseArray(impl, i);
-    case "nbt":
-      return "NBT";
-    case "optionalNbt":
-      return "NBT?";
-    case "buffer":
-      return "[]u8";
-    case "pstring":
-      return "[]u8";
-    default:
-      return `UNKNOWN_COMPLEX_TYPE(${decl})`;
-  }
-};
-
-const parseSimpleType = (t) => {
-  switch (t) {
-    case "optvarint":
-      return "varint?";
-    case "varint":
-      return "varint";
-    case "pstring":
-      return "[]u8";
-    case "UUID":
-      return "UUID";
-    case "void":
-      return "void";
-    case "restBuffer":
-      return "[]u8";
-    case "string":
-      return "[]u8";
-    case "u16":
-      return "u16";
-    case "u8":
-      return "u8";
-    case "i64":
-      return "i64";
-    case "i32":
-      return "i32";
-    case "i8":
-      return "i8";
-    case "bool":
-      return "bool";
-    case "i16":
-      return "i16";
-    case "f32":
-      return "f32";
-    case "f64":
-      return "f64";
-    case "position":
-      return "position";
-    case "slot":
-      return "?Slot";
-    case "optionalNbt":
-      return "?nbt";
-    case "nbt":
-      return "nbt";
-    case "entityMetadata":
-      return "EntityMetadata";
-    case "tags":
-      return "tags";
-    default:
-      return `UNKNOWN_SIMPLE_TYPE(${t})`;
-  }
 };
 
 const parseOption = (t, i) => `?${parseType(t, i)}`;
@@ -260,7 +209,7 @@ const parseContainer = (t, i) => {
   var out = _pprint(0, "struct {");
   t.map((field) => {
     if (field.anon !== undefined && field.anon) {
-      console.log("ANON ALERT,", field);
+      //console.log("ANON ALERT,", field);
       out += _pprint(`${parseType(field.type, i + 1)},`);
     } else {
       // non anon
@@ -272,15 +221,30 @@ const parseContainer = (t, i) => {
 
 // if we have a switch on the same field in the same scope, then we should combine the output
 const parseSwitch = (t, i) => {
-  var out = _pprint(0, `SwitchType(${t.compareTo.split("/").pop()}, struct {`);
-  objectMap(t.fields, (k, v) => {
-    out += _pprint(i + 1, `x${k}: ${parseType(v, i)},`);
-  });
-  out += _pprint(
-    i + 1,
-    `default: ${t.default ? parseType(t.default) : "void"},`
-  );
-  return out + indent(i) + "})";
+  if (decl) {
+    var out = _pprint(0, `union(enum(u8)) {`);
+    objectMap(t.fields, (k, v) => {
+      out += _pprint(i + 1, `x${k}: ${parseType(v, i)},`);
+    });
+    out += _pprint(
+      i + 1,
+      `default: ${t.default ? parseType(t.default) : "void"},`
+    );
+    return out + indent(i) + "}";
+  } else {
+    var out = _pprint(
+      0,
+      `SwitchType(${t.compareTo.split("/").pop()}, struct {`
+    );
+    objectMap(t.fields, (k, v) => {
+      out += _pprint(i + 1, `x${k}: ${parseType(v, i)},`);
+    });
+    out += _pprint(
+      i + 1,
+      `default: ${t.default ? parseType(t.default) : "void"},`
+    );
+    return out + indent(i) + "})";
+  }
 };
 
 function snake2Pascal(str) {

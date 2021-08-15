@@ -1,70 +1,3 @@
-pub const optvarint = varint;
-
-pub const string = []u8;
-
-pub const particle = struct {
-    particleId: varint,
-    data: UNKNOWN_COMPLEX_TYPE(particleData),
-};
-
-pub const particleData = SwitchType($compareTo, struct {
-        x3: struct {
-    blockState: varint,
-},
-        x14: struct {
-    red: f32,
-    green: f32,
-    blue: f32,
-    scale: f32,
-},
-        x23: struct {
-    blockState: varint,
-},
-        x34: struct {
-    item: ?Slot,
-},
-        default: void,
-    });
-
-pub const ingredient = ArrayType(varint, ?Slot);
-
-pub const position = packed struct {
-        x: i26,
-        z: i26,
-        y: i12,
-    };
-
-pub const entityMetadataItem = SwitchType($compareTo, struct {
-        x0: i8,
-        x1: varint,
-        x2: f32,
-        x3: []u8,
-        x4: []u8,
-        x5: ?[]u8,
-        x6: ?Slot,
-        x7: bool,
-        x8: struct {
-    pitch: f32,
-    yaw: f32,
-    roll: f32,
-},
-        x9: position,
-        x10: ?position,
-        x11: varint,
-        x12: ?UUID,
-        x13: varint,
-        x14: nbt,
-        x15: UNKNOWN_SIMPLE_TYPE(particle),
-        x16: struct {
-    villagerType: varint,
-    villagerProfession: varint,
-    level: varint,
-},
-        x17: varint?,
-        x18: varint,
-        default: void,
-    });
-
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
     
@@ -318,7 +251,7 @@ pub const play = struct {
         pub const TileEntityData = struct {
             location: position,
             action: u8,
-            nbtData: ?nbt,
+            nbtData: ?NBT,
         };
 
         pub const BlockAction = struct {
@@ -534,7 +467,7 @@ pub const play = struct {
             offsetZ: f32,
             particleData: f32,
             particles: i32,
-            data: UNKNOWN_COMPLEX_TYPE(particleData),
+            data: particleData,
         };
 
         pub const UpdateLight = struct {
@@ -1002,7 +935,7 @@ pub const play = struct {
         pub const Tags = struct {
             tags: ArrayType(varint, struct {
                 tagType: []u8,
-                tags: tags,
+                tags: ,
             }),
         };
 
