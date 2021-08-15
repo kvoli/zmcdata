@@ -2,6 +2,7 @@ const fs = require("fs");
 
 // TODO ztsd for internal packet compression (not to client).
 
+// manually do
 const blacklisted_packets = new Set([
   "packet_declare_commands",
   "packet_declare_recipes",
@@ -53,6 +54,7 @@ var switched = false;
 
 const allVersions = () => {
   fs.readdir("./minecraft-data/data/pc", (err, files) => {
+    writeIndex(files);
     files.map((v) => {
       if (!blacklisted_versions.has(v)) doVersion(v);
     });
@@ -88,10 +90,10 @@ const doVersion = (v) => {
           objectMap(data, (k, v) => {
             parseState(k, v);
           });
-          if (!fs.readdirSync(`./impl`).some((x) => x === `${v}`)) {
-            fs.mkdirSync(`./impl/${v}`);
+          if (!fs.readdirSync(`./src/impl`).some((x) => x === `${v}`)) {
+            fs.mkdirSync(`./src/impl/${v}`);
           }
-          fs.writeFileSync(`./impl/${v}/protocol.zig`, buffer);
+          fs.writeFileSync(`./src/impl/${v}/protocol.zig`, buffer);
         } catch (e) {
           console.log("error parsing proto ", e);
         }
@@ -353,6 +355,14 @@ const filterDecl = (decl) => {
   }
 
   return snake_case_string(out);
+};
+
+const writeIndex = (ls) => {
+  var buffer = "";
+  ls.map((e) => {
+    buffer += _pprint(0, `pub const @"${e}" = @import("${e}.zig");`);
+  });
+  fs.writeFileSync(`./src/impl/lib.zig`, buffer);
 };
 
 function snake2Pascal(str) {

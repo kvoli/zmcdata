@@ -1,6 +1,7 @@
 const std = @import("std");
 const mem = std.mem;
 const Allocator = mem.Allocator;
+const lib = @import("impl/lib.zig");
 
 const zlm = @import("zlm").specializeOn(f64);
 
