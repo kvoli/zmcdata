@@ -212,7 +212,7 @@ pub const play = struct {
         pub const SpawnEntity = struct {
             entity_id: vi,
             entity_uuid: UUID,
-            typed: i8,
+            @"type": i8,
             x: i32,
             y: i32,
             z: i32,
@@ -227,7 +227,7 @@ pub const play = struct {
         pub const SpawnEntityLiving = struct {
             entity_id: vi,
             entity_uuid: UUID,
-            typed: u8,
+            @"type": u8,
             x: i32,
             y: i32,
             z: i32,
@@ -378,7 +378,7 @@ pub const play = struct {
 
         pub const BlockChange = struct {
             location: position,
-            typed: vi,
+            @"type": vi,
         };
 
         pub const BlockAction = struct {
@@ -432,7 +432,7 @@ pub const play = struct {
 
         pub const SpawnEntityWeather = struct {
             entity_id: vi,
-            typed: i8,
+            @"type": i8,
             x: i32,
             y: i32,
             z: i32,
@@ -538,11 +538,11 @@ pub const play = struct {
             display_text: union(enum(u8)) {
                 @"0": struct {
                     display_text: []u8,
-                    typed: []u8,
+                    @"type": []u8,
                 },
                 @"2": struct {
                     display_text: []u8,
-                    typed: []u8,
+                    @"type": []u8,
                 },
         },
         };

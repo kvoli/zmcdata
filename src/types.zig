@@ -18,6 +18,9 @@ pub fn Match(match: []const u8, comptime T: type) type {
         fields: T,
 
         pub fn serialize(self: Self, writer: anytype, alloc: *Allocator) anyerror!void {
+            const fieldIndex = std.meta.fieldIndex(@This(), match);
+            std.meta.fields(@This())[fieldIndex.?];
+
             try utils.writeVarInt(writer, in(self.int));
         }
 
@@ -135,6 +138,7 @@ pub fn VarInt(comptime T: type, in: fn (v: T) i32, out: fn (v: i32) T) type {
 //
 // user specific types can be defined above with VarInt(), passing
 // an in, out and type func in
+pub const vi = VarInt(i32, VarI(32).in, VarI(i32).out);
 pub const vu8 = VarInt(u8, VarI(u8).in, VarI(u8).out);
 pub const vu16 = VarInt(u16, VarI(u16).in, VarI(u16).out);
 pub const vu32 = VarInt(u32, VarI(u32).in, VarI(u32).out);

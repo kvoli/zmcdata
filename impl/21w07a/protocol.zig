@@ -143,7 +143,7 @@ pub const play = struct {
         pub const SpawnEntity = struct {
             entity_id: vi,
             object_uuid: UUID,
-            typed: vi,
+            @"type": vi,
             x: f64,
             y: f64,
             z: f64,
@@ -166,7 +166,7 @@ pub const play = struct {
         pub const SpawnEntityLiving = struct {
             entity_id: vi,
             entity_uuid: UUID,
-            typed: vi,
+            @"type": vi,
             x: f64,
             y: f64,
             z: f64,
@@ -272,7 +272,7 @@ pub const play = struct {
 
         pub const BlockChange = struct {
             location: position,
-            typed: vi,
+            @"type": vi,
         };
 
         pub const BossBar = struct {
@@ -501,7 +501,7 @@ pub const play = struct {
             tracking_position: bool,
             locked: bool,
             icons: []struct {
-                typed: vi,
+                @"type": vi,
                 x: i8,
                 y: i8,
                 direction: u8,
@@ -750,11 +750,11 @@ pub const play = struct {
             display_text: union(enum(u8)) {
                 @"0": struct {
                     display_text: []u8,
-                    typed: vi,
+                    @"type": vi,
                 },
                 @"2": struct {
                     display_text: []u8,
-                    typed: vi,
+                    @"type": vi,
                 },
         },
         };

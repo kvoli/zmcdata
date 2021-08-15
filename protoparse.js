@@ -345,7 +345,7 @@ const containsSwitch = (t) => {
 const filterDecl = (decl) => {
   var out = "";
   if (decl === "type") {
-    out = "typed";
+    return `@"type"`;
   } else if (decl === "default") {
     out = `default`;
   } else {
