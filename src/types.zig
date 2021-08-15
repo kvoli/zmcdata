@@ -39,7 +39,7 @@ pub fn ArrayType(comptime countType: type, comptime fieldType: type) type {
 ///     switchType: bool
 ///     directlyAbove: true
 ///
-/// packet_map 
+/// packet_map
 /// -----------------------------
 ///
 ///     switchType: u8
@@ -73,7 +73,7 @@ pub fn ArrayType(comptime countType: type, comptime fieldType: type) type {
 /// -----------------------------
 ///
 ///     switchType: i8
-///     directlyAbove: false **
+///     directlyAbove: true
 ///
 /// packet_stop_sound
 /// -----------------------------

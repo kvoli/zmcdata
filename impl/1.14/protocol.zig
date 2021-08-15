@@ -1,3 +1,11 @@
+pub const ingredient = []Slot;
+
+pub const position = packed struct {
+    x: i26,
+    z: i26,
+    y: i12,
+};
+
 pub const handshaking = struct {
     pub const s2c = union(S2C) {
     
@@ -7,10 +15,10 @@ pub const handshaking = struct {
 
     pub const c2s = union(C2S) {
         pub const SetProtocol = struct {
-            protocolVersion: varint,
-            serverHost: []u8,
-            serverPort: u16,
-            nextState: varint,
+            protocol_version: vi,
+            server_host: []u8,
+            server_port: u16,
+            next_state: vi,
         };
 
         pub const LegacyServerListPing = struct {
@@ -69,9 +77,9 @@ pub const login = struct {
         };
 
         pub const EncryptionBegin = struct {
-            serverId: []u8,
-            publicKey: []u8,
-            verifyToken: []u8,
+            server_id: []u8,
+            public_key: []u8,
+            verify_token: []u8,
         };
 
         pub const Success = struct {
@@ -80,11 +88,11 @@ pub const login = struct {
         };
 
         pub const Compress = struct {
-            threshold: varint,
+            threshold: vi,
         };
 
         pub const LoginPluginRequest = struct {
-            messageId: varint,
+            message_id: vi,
             channel: []u8,
             data: []u8,
         };
@@ -110,12 +118,12 @@ pub const login = struct {
         };
 
         pub const EncryptionBegin = struct {
-            sharedSecret: []u8,
-            verifyToken: []u8,
+            shared_secret: []u8,
+            verify_token: []u8,
         };
 
         pub const LoginPluginResponse = struct {
-            messageId: varint,
+            message_id: vi,
             data: ?[]u8,
         };
 
@@ -133,22 +141,22 @@ pub const login = struct {
 pub const play = struct {
     pub const s2c = union(S2C) {
         pub const SpawnEntity = struct {
-            entityId: varint,
-            objectUUID: UUID,
-            type: varint,
+            entity_id: vi,
+            object_uuid: UUID,
+            typed: vi,
             x: f64,
             y: f64,
             z: f64,
             pitch: i8,
             yaw: i8,
-            objectData: i32,
-            velocityX: i16,
-            velocityY: i16,
-            velocityZ: i16,
+            object_data: i32,
+            velocity_x: i16,
+            velocity_y: i16,
+            velocity_z: i16,
         };
 
         pub const SpawnEntityExperienceOrb = struct {
-            entityId: varint,
+            entity_id: vi,
             x: f64,
             y: f64,
             z: f64,
@@ -156,40 +164,40 @@ pub const play = struct {
         };
 
         pub const SpawnEntityWeather = struct {
-            entityId: varint,
-            type: i8,
+            entity_id: vi,
+            typed: i8,
             x: f64,
             y: f64,
             z: f64,
         };
 
         pub const SpawnEntityLiving = struct {
-            entityId: varint,
-            entityUUID: UUID,
-            type: varint,
+            entity_id: vi,
+            entity_uuid: UUID,
+            typed: vi,
             x: f64,
             y: f64,
             z: f64,
             yaw: i8,
             pitch: i8,
-            headPitch: i8,
-            velocityX: i16,
-            velocityY: i16,
-            velocityZ: i16,
+            head_pitch: i8,
+            velocity_x: i16,
+            velocity_y: i16,
+            velocity_z: i16,
             metadata: EntityMetadata,
         };
 
         pub const SpawnEntityPainting = struct {
-            entityId: varint,
-            entityUUID: UUID,
-            title: varint,
+            entity_id: vi,
+            entity_uuid: UUID,
+            title: vi,
             location: position,
             direction: u8,
         };
 
         pub const NamedEntitySpawn = struct {
-            entityId: varint,
-            playerUUID: UUID,
+            entity_id: vi,
+            player_uuid: UUID,
             x: f64,
             y: f64,
             z: f64,
@@ -199,147 +207,143 @@ pub const play = struct {
         };
 
         pub const Animation = struct {
-            entityId: varint,
+            entity_id: vi,
             animation: u8,
         };
 
         pub const Statistics = struct {
-            entries: ArrayType(varint, struct {
-                categoryId: varint,
-                statisticId: varint,
-                value: varint,
-            }),
+            entries: []struct {
+                category_id: vi,
+                statistic_id: vi,
+                value: vi,
+            },
         };
 
         pub const Advancements = struct {
             reset: bool,
-            advancementMapping: ArrayType(varint, struct {
+            advancement_mapping: []struct {
                 key: []u8,
                 value: struct {
-                    parentId: ?[]u8,
-                    displayData: ?struct {
+                    parent_id: ?[]u8,
+                    display_data: ?struct {
                         title: []u8,
                         description: []u8,
-                        icon: ?Slot,
-                        frameType: varint,
+                        icon: Slot,
+                        frame_type: vi,
                         flags: packed struct {
-                                _unused: u29,
-                                hidden: u1,
-                                show_toast: u1,
-                                has_background_texture: u1,
-                            },
-                        backgroundTexture: SwitchType(has_background_texture, struct {
-                                x1: []u8,
-                                default: void,
-                            }),
-                        xCord: f32,
-                        yCord: f32,
+                            unused: u29,
+                            hidden: u1,
+                            show_toast: u1,
+                            has_background_texture: u1,
+                        },
+                        background_texture: union(enum(u8)) {
+                                x1: struct {
+                                    background_texture: []u8,
+                                },
+                        },
+                        x_cord: f32,
+                        y_cord: f32,
                     },
-                    criteria: ArrayType(varint, struct {
+                    criteria: []struct {
                             key: []u8,
                             value: void,
-                        }),
-                    requirements: ArrayType(varint, ArrayType(varint, []u8)),
+                        },
+                    requirements: [][][]u8,
                 },
-            }),
-            identifiers: ArrayType(varint, []u8),
-            progressMapping: ArrayType(varint, struct {
+            },
+            identifiers: [][]u8,
+            progress_mapping: []struct {
                 key: []u8,
-                value: ArrayType(varint, struct {
-                        criterionIdentifier: []u8,
-                        criterionProgress: ?i64,
-                    }),
-            }),
+                value: []struct {
+                        criterion_identifier: []u8,
+                        criterion_progress: ?i64,
+                    },
+            },
         };
 
         pub const BlockBreakAnimation = struct {
-            entityId: varint,
+            entity_id: vi,
             location: position,
-            destroyStage: i8,
+            destroy_stage: i8,
         };
 
         pub const TileEntityData = struct {
             location: position,
             action: u8,
-            nbtData: ?NBT,
+            nbt_data: ?NBT,
         };
 
         pub const BlockAction = struct {
             location: position,
             byte1: u8,
             byte2: u8,
-            blockId: varint,
+            block_id: vi,
         };
 
         pub const BlockChange = struct {
             location: position,
-            type: varint,
+            typed: vi,
         };
 
         pub const BossBar = struct {
-            entityUUID: UUID,
-            action: varint,
-            title: SwitchType(action, struct {
-                x0: []u8,
-                x3: []u8,
-                default: void,
-            }),
-            health: SwitchType(action, struct {
-                x0: f32,
-                x2: f32,
-                default: void,
-            }),
-            color: SwitchType(action, struct {
-                x0: varint,
-                x4: varint,
-                default: void,
-            }),
-            dividers: SwitchType(action, struct {
-                x0: varint,
-                x4: varint,
-                default: void,
-            }),
-            flags: SwitchType(action, struct {
-                x0: u8,
-                x5: u8,
-                default: void,
-            }),
+            entity_uuid: UUID,
+            action: vi,
+            title: union(enum(u8)) {
+                x0: struct {
+                    title: []u8,
+                    health: f32,
+                    color: vi,
+                    dividers: vi,
+                    flags: u8,
+                },
+                x2: struct {
+                    health: f32,
+                },
+                x3: struct {
+                    title: []u8,
+                },
+                x4: struct {
+                    color: vi,
+                    dividers: vi,
+                },
+                x5: struct {
+                    flags: u8,
+                },
+        },
         };
 
         pub const Difficulty = struct {
             difficulty: u8,
-            difficultyLocked: bool,
+            difficulty_locked: bool,
         };
 
         pub const TabComplete = struct {
-            transactionId: varint,
-            start: varint,
-            length: varint,
-            matches: ArrayType(varint, struct {
+            transaction_id: vi,
+            start: vi,
+            length: vi,
+            matches: []struct {
                 match: []u8,
                 tooltip: ?[]u8,
-            }),
+            },
         };
 
         pub const FacePlayer = struct {
-            feet_eyes: varint,
+            feet_eyes: vi,
             x: f64,
             y: f64,
             z: f64,
-            isEntity: bool,
-            entityId: SwitchType(isEntity, struct {
-                xtrue: varint,
-                default: void,
-            }),
-            entity_feet_eyes: SwitchType(isEntity, struct {
-                xtrue: []u8,
-                default: void,
-            }),
+            is_entity: bool,
+            entity_id: union(enum(u8)) {
+                xtrue: struct {
+                    entity_id: vi,
+                    entity_feet_eyes: []u8,
+                },
+        },
         };
 
         pub const NbtQueryResponse = struct {
-            transactionId: varint,
-            nbt: nbt,
+            transaction_id: vi,
+            nbt: NBT,
         };
 
         pub const Chat = struct {
@@ -348,51 +352,51 @@ pub const play = struct {
         };
 
         pub const MultiBlockChange = struct {
-            chunkX: i32,
-            chunkZ: i32,
-            records: ArrayType(varint, struct {
-                horizontalPos: u8,
+            chunk_x: i32,
+            chunk_z: i32,
+            records: []struct {
+                horizontal_pos: u8,
                 y: u8,
-                blockId: varint,
-            }),
+                block_id: vi,
+            },
         };
 
         pub const Transaction = struct {
-            windowId: i8,
+            window_id: i8,
             action: i16,
             accepted: bool,
         };
 
         pub const CloseWindow = struct {
-            windowId: u8,
+            window_id: u8,
         };
 
         pub const OpenWindow = struct {
-            windowId: varint,
-            inventoryType: varint,
-            windowTitle: []u8,
+            window_id: vi,
+            inventory_type: vi,
+            window_title: []u8,
         };
 
         pub const WindowItems = struct {
-            windowId: u8,
-            items: ArrayType(i16, ?Slot),
+            window_id: u8,
+            items: []Slot,
         };
 
         pub const CraftProgressBar = struct {
-            windowId: u8,
+            window_id: u8,
             property: i16,
             value: i16,
         };
 
         pub const SetSlot = struct {
-            windowId: i8,
+            window_id: i8,
             slot: i16,
-            item: ?Slot,
+            item: Slot,
         };
 
         pub const SetCooldown = struct {
-            itemID: varint,
-            cooldownTicks: varint,
+            item_id: vi,
+            cooldown_ticks: vi,
         };
 
         pub const CustomPayload = struct {
@@ -401,8 +405,8 @@ pub const play = struct {
         };
 
         pub const NamedSoundEffect = struct {
-            soundName: []u8,
-            soundCategory: varint,
+            sound_name: []u8,
+            sound_category: vi,
             x: i32,
             y: i32,
             z: i32,
@@ -415,8 +419,8 @@ pub const play = struct {
         };
 
         pub const EntityStatus = struct {
-            entityId: i32,
-            entityStatus: i8,
+            entity_id: i32,
+            entity_status: i8,
         };
 
         pub const Explosion = struct {
@@ -424,163 +428,141 @@ pub const play = struct {
             y: f32,
             z: f32,
             radius: f32,
-            affectedBlockOffsets: ArrayType(i32, struct {
+            affected_block_offsets: []struct {
                 x: i8,
                 y: i8,
                 z: i8,
-            }),
-            playerMotionX: f32,
-            playerMotionY: f32,
-            playerMotionZ: f32,
+            },
+            player_motion_x: f32,
+            player_motion_y: f32,
+            player_motion_z: f32,
         };
 
         pub const UnloadChunk = struct {
-            chunkX: i32,
-            chunkZ: i32,
+            chunk_x: i32,
+            chunk_z: i32,
         };
 
         pub const GameStateChange = struct {
             reason: u8,
-            gameMode: f32,
+            game_mode: f32,
         };
 
         pub const OpenHorseWindow = struct {
-            windowId: u8,
-            nbSlots: varint,
-            entityId: i32,
+            window_id: u8,
+            nb_slots: vi,
+            entity_id: i32,
         };
 
         pub const KeepAlive = struct {
-            keepAliveId: i64,
+            keep_alive_id: i64,
         };
 
         pub const MapChunk = struct {
             x: i32,
             z: i32,
-            groundUp: bool,
-            bitMap: varint,
-            heightmaps: nbt,
-            chunkData: []u8,
-            blockEntities: ArrayType(varint, nbt),
+            ground_up: bool,
+            bit_map: vi,
+            heightmaps: NBT,
+            chunk_data: []u8,
+            block_entities: []NBT,
         };
 
         pub const WorldEvent = struct {
-            effectId: i32,
+            effect_id: i32,
             location: position,
             data: i32,
             global: bool,
         };
 
-        pub const WorldParticles = struct {
-            particleId: i32,
-            longDistance: bool,
-            x: f32,
-            y: f32,
-            z: f32,
-            offsetX: f32,
-            offsetY: f32,
-            offsetZ: f32,
-            particleData: f32,
-            particles: i32,
-            data: particleData,
-        };
-
         pub const UpdateLight = struct {
-            chunkX: varint,
-            chunkZ: varint,
-            skyLightMask: varint,
-            blockLightMask: varint,
-            emptySkyLightMask: varint,
-            emptyBlockLightMask: varint,
+            chunk_x: vi,
+            chunk_z: vi,
+            sky_light_mask: vi,
+            block_light_mask: vi,
+            empty_sky_light_mask: vi,
+            empty_block_light_mask: vi,
             data: []u8,
         };
 
         pub const Login = struct {
-            entityId: i32,
-            gameMode: u8,
+            entity_id: i32,
+            game_mode: u8,
             dimension: i32,
-            maxPlayers: u8,
-            levelType: []u8,
-            viewDistance: varint,
-            reducedDebugInfo: bool,
+            max_players: u8,
+            level_type: []u8,
+            view_distance: vi,
+            reduced_debug_info: bool,
         };
 
         pub const Map = struct {
-            itemDamage: varint,
+            item_damage: vi,
             scale: i8,
-            trackingPosition: bool,
+            tracking_position: bool,
             locked: bool,
-            icons: ArrayType(varint, struct {
-                type: varint,
+            icons: []struct {
+                typed: vi,
                 x: i8,
                 y: i8,
                 direction: u8,
-                displayName: ?[]u8,
-            }),
+                display_name: ?[]u8,
+            },
             columns: i8,
-            rows: SwitchType(columns, struct {
-                x0: void,
-                default: i8,
-            }),
-            x: SwitchType(columns, struct {
-                x0: void,
-                default: i8,
-            }),
-            y: SwitchType(columns, struct {
-                x0: void,
-                default: i8,
-            }),
-            data: SwitchType(columns, struct {
-                x0: void,
-                default: []u8,
-            }),
+            rows: union(enum(u8)) {
+                xdefault: struct {
+                    rows: i8,
+                    x: i8,
+                    y: i8,
+                    data: []u8,
+                },
+        },
         };
 
         pub const TradeList = struct {
-            windowId: varint,
-            trades: ArrayType(u8, struct {
-                inputItem1: ?Slot,
-                outputItem: ?Slot,
-                inputItem2: ??Slot,
-                tradeDisabled: bool,
-                nbTradeUses: i32,
-                maximumNbTradeUses: i32,
+            window_id: vi,
+            trades: []struct {
+                input_item1: Slot,
+                output_item: Slot,
+                input_item2: ?Slot,
+                trade_disabled: bool,
+                nb_trade_uses: i32,
+                maximum_nb_trade_uses: i32,
                 xp: i32,
-                specialPrice: i32,
-                priceMultiplier: f32,
-            }),
-            villagerLevel: varint,
-            experience: varint,
-            isRegularVillager: bool,
+                special_price: i32,
+                price_multiplier: f32,
+            },
+            villager_level: vi,
+            experience: vi,
+            is_regular_villager: bool,
         };
 
         pub const RelEntityMove = struct {
-            entityId: varint,
-            dX: i16,
-            dY: i16,
-            dZ: i16,
-            onGround: bool,
+            entity_id: vi,
+            d_x: i16,
+            d_y: i16,
+            d_z: i16,
+            on_ground: bool,
         };
 
         pub const EntityMoveLook = struct {
-            entityId: varint,
-            dX: i16,
-            dY: i16,
-            dZ: i16,
+            entity_id: vi,
+            d_x: i16,
+            d_y: i16,
+            d_z: i16,
             yaw: i8,
             pitch: i8,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const EntityLook = struct {
-            entityId: varint,
+            entity_id: vi,
             yaw: i8,
             pitch: i8,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const Entity = struct {
-            entityId: varint,
+            entity_id: vi,
         };
 
         pub const VehicleMove = struct {
@@ -592,7 +574,7 @@ pub const play = struct {
         };
 
         pub const OpenBook = struct {
-            hand: varint,
+            hand: vi,
         };
 
         pub const OpenSignEntity = struct {
@@ -600,69 +582,29 @@ pub const play = struct {
         };
 
         pub const CraftRecipeResponse = struct {
-            windowId: i8,
+            window_id: i8,
             recipe: []u8,
         };
 
         pub const Abilities = struct {
             flags: i8,
-            flyingSpeed: f32,
-            walkingSpeed: f32,
+            flying_speed: f32,
+            walking_speed: f32,
         };
 
         pub const CombatEvent = struct {
-            event: varint,
-            duration: SwitchType(event, struct {
-                x1: varint,
-                default: void,
-            }),
-            playerId: SwitchType(event, struct {
-                x2: varint,
-                default: void,
-            }),
-            entityId: SwitchType(event, struct {
-                x1: i32,
-                x2: i32,
-                default: void,
-            }),
-            message: SwitchType(event, struct {
-                x2: []u8,
-                default: void,
-            }),
-        };
-
-        pub const PlayerInfo = struct {
-            action: varint,
-            data: ArrayType(varint, struct {
-                UUID: UUID,
-                name: SwitchType(action, struct {
-                        x0: []u8,
-                        default: void,
-                    }),
-                properties: SwitchType(action, struct {
-                        x0: ArrayType(varint, struct {
-                        name: []u8,
-                        value: []u8,
-                        signature: ?[]u8,
-                    }),
-                        default: void,
-                    }),
-                gamemode: SwitchType(action, struct {
-                        x0: varint,
-                        x1: varint,
-                        default: void,
-                    }),
-                ping: SwitchType(action, struct {
-                        x0: varint,
-                        x2: varint,
-                        default: void,
-                    }),
-                displayName: SwitchType(action, struct {
-                        x0: ?[]u8,
-                        x3: ?[]u8,
-                        default: void,
-                    }),
-            }),
+            event: vi,
+            duration: union(enum(u8)) {
+                x1: struct {
+                    duration: vi,
+                    entity_id: i32,
+                },
+                x2: struct {
+                    player_id: vi,
+                    entity_id: i32,
+                    message: []u8,
+                },
+        },
         };
 
         pub const Position = struct {
@@ -672,29 +614,16 @@ pub const play = struct {
             yaw: f32,
             pitch: f32,
             flags: i8,
-            teleportId: varint,
-        };
-
-        pub const UnlockRecipes = struct {
-            action: varint,
-            craftingBookOpen: bool,
-            filteringCraftable: bool,
-            smeltingBookOpen: bool,
-            filteringSmeltable: bool,
-            recipes1: ArrayType(varint, []u8),
-            recipes2: SwitchType(action, struct {
-                x0: ArrayType(varint, []u8),
-                default: void,
-            }),
+            teleport_id: vi,
         };
 
         pub const EntityDestroy = struct {
-            entityIds: ArrayType(varint, varint),
+            entity_ids: []vi,
         };
 
         pub const RemoveEntityEffect = struct {
-            entityId: varint,
-            effectId: i8,
+            entity_id: vi,
+            effect_id: i8,
         };
 
         pub const ResourcePackSend = struct {
@@ -705,63 +634,50 @@ pub const play = struct {
         pub const Respawn = struct {
             dimension: i32,
             gamemode: u8,
-            levelType: []u8,
+            level_type: []u8,
         };
 
         pub const EntityHeadRotation = struct {
-            entityId: varint,
-            headYaw: i8,
+            entity_id: vi,
+            head_yaw: i8,
         };
 
         pub const WorldBorder = struct {
-            action: varint,
-            radius: SwitchType(action, struct {
-                x0: f64,
-                default: void,
-            }),
-            x: SwitchType(action, struct {
-                x2: f64,
-                x3: f64,
-                default: void,
-            }),
-            z: SwitchType(action, struct {
-                x2: f64,
-                x3: f64,
-                default: void,
-            }),
-            old_radius: SwitchType(action, struct {
-                x1: f64,
-                x3: f64,
-                default: void,
-            }),
-            new_radius: SwitchType(action, struct {
-                x1: f64,
-                x3: f64,
-                default: void,
-            }),
-            speed: SwitchType(action, struct {
-                x1: varint,
-                x3: varint,
-                default: void,
-            }),
-            portalBoundary: SwitchType(action, struct {
-                x3: varint,
-                default: void,
-            }),
-            warning_time: SwitchType(action, struct {
-                x3: varint,
-                x4: varint,
-                default: void,
-            }),
-            warning_blocks: SwitchType(action, struct {
-                x3: varint,
-                x5: varint,
-                default: void,
-            }),
+            action: vi,
+            radius: union(enum(u8)) {
+                x0: struct {
+                    radius: f64,
+                },
+                x1: struct {
+                    old_radius: f64,
+                    new_radius: f64,
+                    speed: vi,
+                },
+                x2: struct {
+                    x: f64,
+                    z: f64,
+                },
+                x3: struct {
+                    x: f64,
+                    z: f64,
+                    old_radius: f64,
+                    new_radius: f64,
+                    speed: vi,
+                    portal_boundary: vi,
+                    warning_time: vi,
+                    warning_blocks: vi,
+                },
+                x4: struct {
+                    warning_time: vi,
+                },
+                x5: struct {
+                    warning_blocks: vi,
+                },
+        },
         };
 
         pub const Camera = struct {
-            cameraId: varint,
+            camera_id: vi,
         };
 
         pub const HeldItemSlot = struct {
@@ -769,12 +685,12 @@ pub const play = struct {
         };
 
         pub const UpdateViewPosition = struct {
-            chunkX: varint,
-            chunkZ: varint,
+            chunk_x: vi,
+            chunk_z: vi,
         };
 
         pub const UpdateViewDistance = struct {
-            viewDistance: varint,
+            view_distance: vi,
         };
 
         pub const ScoreboardDisplayObjective = struct {
@@ -783,114 +699,90 @@ pub const play = struct {
         };
 
         pub const EntityMetadata = struct {
-            entityId: varint,
+            entity_id: vi,
             metadata: EntityMetadata,
         };
 
         pub const AttachEntity = struct {
-            entityId: i32,
-            vehicleId: i32,
+            entity_id: i32,
+            vehicle_id: i32,
         };
 
         pub const EntityVelocity = struct {
-            entityId: varint,
-            velocityX: i16,
-            velocityY: i16,
-            velocityZ: i16,
+            entity_id: vi,
+            velocity_x: i16,
+            velocity_y: i16,
+            velocity_z: i16,
         };
 
         pub const EntityEquipment = struct {
-            entityId: varint,
-            slot: varint,
-            item: ?Slot,
+            entity_id: vi,
+            slot: vi,
+            item: Slot,
         };
 
         pub const Experience = struct {
-            experienceBar: f32,
-            level: varint,
-            totalExperience: varint,
+            experience_bar: f32,
+            level: vi,
+            total_experience: vi,
         };
 
         pub const UpdateHealth = struct {
             health: f32,
-            food: varint,
-            foodSaturation: f32,
+            food: vi,
+            food_saturation: f32,
         };
 
         pub const ScoreboardObjective = struct {
             name: []u8,
             action: i8,
-            displayText: SwitchType(action, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            type: SwitchType(action, struct {
-                x0: varint,
-                x2: varint,
-                default: void,
-            }),
+            display_text: union(enum(u8)) {
+                x0: struct {
+                    display_text: []u8,
+                    typed: vi,
+                },
+                x2: struct {
+                    display_text: []u8,
+                    typed: vi,
+                },
+        },
         };
 
         pub const SetPassengers = struct {
-            entityId: varint,
-            passengers: ArrayType(varint, varint),
+            entity_id: vi,
+            passengers: []vi,
         };
 
         pub const Teams = struct {
             team: []u8,
             mode: i8,
-            name: SwitchType(mode, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            friendlyFire: SwitchType(mode, struct {
-                x0: i8,
-                x2: i8,
-                default: void,
-            }),
-            nameTagVisibility: SwitchType(mode, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            collisionRule: SwitchType(mode, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            formatting: SwitchType(mode, struct {
-                x0: varint,
-                x2: varint,
-                default: void,
-            }),
-            prefix: SwitchType(mode, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            suffix: SwitchType(mode, struct {
-                x0: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            players: SwitchType(mode, struct {
-                x0: ArrayType(varint, []u8),
-                x3: ArrayType(varint, []u8),
-                x4: ArrayType(varint, []u8),
-                default: void,
-            }),
-        };
-
-        pub const ScoreboardScore = struct {
-            itemName: []u8,
-            action: i8,
-            scoreName: []u8,
-            value: SwitchType(action, struct {
-                x1: void,
-                default: varint,
-            }),
+            name: union(enum(u8)) {
+                x0: struct {
+                    name: []u8,
+                    friendly_fire: i8,
+                    name_tag_visibility: []u8,
+                    collision_rule: []u8,
+                    formatting: vi,
+                    prefix: []u8,
+                    suffix: []u8,
+                    players: [][]u8,
+                },
+                x2: struct {
+                    name: []u8,
+                    friendly_fire: i8,
+                    name_tag_visibility: []u8,
+                    collision_rule: []u8,
+                    formatting: vi,
+                    prefix: []u8,
+                    suffix: []u8,
+                },
+                x3: struct {
+                    players: [][]u8,
+                },
+                x4: struct {
+                    players: [][]u8,
+                },
+        },
         };
 
         pub const SpawnPosition = struct {
@@ -903,52 +795,52 @@ pub const play = struct {
         };
 
         pub const Title = struct {
-            action: varint,
-            text: SwitchType(action, struct {
-                x0: []u8,
-                x1: []u8,
-                x2: []u8,
-                default: void,
-            }),
-            fadeIn: SwitchType(action, struct {
-                x3: i32,
-                default: void,
-            }),
-            stay: SwitchType(action, struct {
-                x3: i32,
-                default: void,
-            }),
-            fadeOut: SwitchType(action, struct {
-                x3: i32,
-                default: void,
-            }),
+            action: vi,
+            text: union(enum(u8)) {
+                x0: struct {
+                    text: []u8,
+                },
+                x1: struct {
+                    text: []u8,
+                },
+                x2: struct {
+                    text: []u8,
+                },
+                x3: struct {
+                    fade_in: i32,
+                    stay: i32,
+                    fade_out: i32,
+                },
+        },
         };
 
         pub const EntitySoundEffect = struct {
-            soundId: varint,
-            soundCategory: varint,
-            entityId: varint,
+            sound_id: vi,
+            sound_category: vi,
+            entity_id: vi,
             volume: f32,
             pitch: f32,
         };
 
         pub const StopSound = struct {
             flags: i8,
-            source: SwitchType(flags, struct {
-                x1: varint,
-                x3: varint,
-                default: void,
-            }),
-            sound: SwitchType(flags, struct {
-                x2: []u8,
-                x3: []u8,
-                default: void,
-            }),
+            source: union(enum(u8)) {
+                x1: struct {
+                    source: vi,
+                },
+                x2: struct {
+                    sound: []u8,
+                },
+                x3: struct {
+                    source: vi,
+                    sound: []u8,
+                },
+        },
         };
 
         pub const SoundEffect = struct {
-            soundId: varint,
-            soundCategory: varint,
+            sound_id: vi,
+            sound_category: vi,
             x: i32,
             y: i32,
             z: i32,
@@ -962,40 +854,40 @@ pub const play = struct {
         };
 
         pub const Collect = struct {
-            collectedEntityId: varint,
-            collectorEntityId: varint,
-            pickupItemCount: varint,
+            collected_entity_id: vi,
+            collector_entity_id: vi,
+            pickup_item_count: vi,
         };
 
         pub const EntityTeleport = struct {
-            entityId: varint,
+            entity_id: vi,
             x: f64,
             y: f64,
             z: f64,
             yaw: i8,
             pitch: i8,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const EntityUpdateAttributes = struct {
-            entityId: varint,
-            properties: ArrayType(i32, struct {
+            entity_id: vi,
+            properties: []struct {
                 key: []u8,
                 value: f64,
-                modifiers: ArrayType(varint, struct {
+                modifiers: []struct {
                         uuid: UUID,
                         amount: f64,
                         operation: i8,
-                    }),
-            }),
+                    },
+            },
         };
 
         pub const EntityEffect = struct {
-            entityId: varint,
-            effectId: i8,
+            entity_id: vi,
+            effect_id: i8,
             amplifier: i8,
-            duration: varint,
-            hideParticles: i8,
+            duration: vi,
+            hide_particles: i8,
         };
 
         pub const SelectAdvancementTab = struct {
@@ -1003,10 +895,10 @@ pub const play = struct {
         };
 
         pub const Tags = struct {
-            blockTags: ,
-            itemTags: ,
-            fluidTags: ,
-            entityTags: ,
+            block_tags: Tags,
+            item_tags: Tags,
+            fluid_tags: Tags,
+            entity_tags: Tags,
         };
 
         spawn_entity: SpawnEntity,
@@ -1200,31 +1092,31 @@ pub const play = struct {
 
     pub const c2s = union(C2S) {
         pub const TeleportConfirm = struct {
-            teleportId: varint,
+            teleport_id: vi,
         };
 
         pub const QueryBlockNbt = struct {
-            transactionId: varint,
+            transaction_id: vi,
             location: position,
         };
 
         pub const SetDifficulty = struct {
-            newDifficulty: u8,
+            new_difficulty: u8,
         };
 
         pub const EditBook = struct {
-            new_book: ?Slot,
+            new_book: Slot,
             signing: bool,
-            hand: varint,
+            hand: vi,
         };
 
         pub const QueryEntityNbt = struct {
-            transactionId: varint,
-            entityId: varint,
+            transaction_id: vi,
+            entity_id: vi,
         };
 
         pub const PickItem = struct {
-            slot: varint,
+            slot: vi,
         };
 
         pub const NameItem = struct {
@@ -1232,31 +1124,31 @@ pub const play = struct {
         };
 
         pub const SelectTrade = struct {
-            slot: varint,
+            slot: vi,
         };
 
         pub const SetBeaconEffect = struct {
-            primary_effect: varint,
-            secondary_effect: varint,
+            primary_effect: vi,
+            secondary_effect: vi,
         };
 
         pub const UpdateCommandBlock = struct {
             location: position,
             command: []u8,
-            mode: varint,
+            mode: vi,
             flags: u8,
         };
 
         pub const UpdateCommandBlockMinecart = struct {
-            entityId: varint,
+            entity_id: vi,
             command: []u8,
             track_output: bool,
         };
 
         pub const UpdateStructureBlock = struct {
             location: position,
-            action: varint,
-            mode: varint,
+            action: vi,
+            mode: vi,
             name: []u8,
             offset_x: u8,
             offset_y: u8,
@@ -1264,16 +1156,16 @@ pub const play = struct {
             size_x: u8,
             size_y: u8,
             size_z: u8,
-            mirror: varint,
-            rotation: varint,
+            mirror: vi,
+            rotation: vi,
             metadata: []u8,
             integrity: f32,
-            seed: varint,
+            seed: vi,
             flags: u8,
         };
 
         pub const TabComplete = struct {
-            transactionId: varint,
+            transaction_id: vi,
             text: []u8,
         };
 
@@ -1282,40 +1174,40 @@ pub const play = struct {
         };
 
         pub const ClientCommand = struct {
-            actionId: varint,
+            action_id: vi,
         };
 
         pub const Settings = struct {
             locale: []u8,
-            viewDistance: i8,
-            chatFlags: varint,
-            chatColors: bool,
-            skinParts: u8,
-            mainHand: varint,
+            view_distance: i8,
+            chat_flags: vi,
+            chat_colors: bool,
+            skin_parts: u8,
+            main_hand: vi,
         };
 
         pub const Transaction = struct {
-            windowId: i8,
+            window_id: i8,
             action: i16,
             accepted: bool,
         };
 
         pub const EnchantItem = struct {
-            windowId: i8,
+            window_id: i8,
             enchantment: i8,
         };
 
         pub const WindowClick = struct {
-            windowId: u8,
+            window_id: u8,
             slot: i16,
-            mouseButton: i8,
+            mouse_button: i8,
             action: i16,
             mode: i8,
-            item: ?Slot,
+            item: Slot,
         };
 
         pub const CloseWindow = struct {
-            windowId: u8,
+            window_id: u8,
         };
 
         pub const CustomPayload = struct {
@@ -1324,29 +1216,23 @@ pub const play = struct {
         };
 
         pub const UseEntity = struct {
-            target: varint,
-            mouse: varint,
-            x: SwitchType(mouse, struct {
-                x2: f32,
-                default: void,
-            }),
-            y: SwitchType(mouse, struct {
-                x2: f32,
-                default: void,
-            }),
-            z: SwitchType(mouse, struct {
-                x2: f32,
-                default: void,
-            }),
-            hand: SwitchType(mouse, struct {
-                x0: varint,
-                x2: varint,
-                default: void,
-            }),
+            target: vi,
+            mouse: vi,
+            x: union(enum(u8)) {
+                x0: struct {
+                    hand: vi,
+                },
+                x2: struct {
+                    x: f32,
+                    y: f32,
+                    z: f32,
+                    hand: vi,
+                },
+        },
         };
 
         pub const KeepAlive = struct {
-            keepAliveId: i64,
+            keep_alive_id: i64,
         };
 
         pub const LockDifficulty = struct {
@@ -1357,7 +1243,7 @@ pub const play = struct {
             x: f64,
             y: f64,
             z: f64,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const PositionLook = struct {
@@ -1366,17 +1252,17 @@ pub const play = struct {
             z: f64,
             yaw: f32,
             pitch: f32,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const Look = struct {
             yaw: f32,
             pitch: f32,
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const Flying = struct {
-            onGround: bool,
+            on_ground: bool,
         };
 
         pub const VehicleMove = struct {
@@ -1388,20 +1274,20 @@ pub const play = struct {
         };
 
         pub const SteerBoat = struct {
-            leftPaddle: bool,
-            rightPaddle: bool,
+            left_paddle: bool,
+            right_paddle: bool,
         };
 
         pub const CraftRecipeRequest = struct {
-            windowId: i8,
+            window_id: i8,
             recipe: []u8,
-            makeAll: bool,
+            make_all: bool,
         };
 
         pub const Abilities = struct {
             flags: i8,
-            flyingSpeed: f32,
-            walkingSpeed: f32,
+            flying_speed: f32,
+            walking_speed: f32,
         };
 
         pub const BlockDig = struct {
@@ -1411,9 +1297,9 @@ pub const play = struct {
         };
 
         pub const EntityAction = struct {
-            entityId: varint,
-            actionId: varint,
-            jumpBoost: varint,
+            entity_id: vi,
+            action_id: vi,
+            jump_boost: vi,
         };
 
         pub const SteerVehicle = struct {
@@ -1422,44 +1308,24 @@ pub const play = struct {
             jump: u8,
         };
 
-        pub const CraftingBookData = struct {
-            type: varint,
-            undefined: SwitchType(type, struct {
-                x0: struct {
-            displayedRecipe: []u8,
-        },
-                x1: struct {
-            craftingBookOpen: bool,
-            craftingFilter: bool,
-            smeltingBookOpen: bool,
-            smeltingFilter: bool,
-            blastingBookOpen: bool,
-            blastingFilter: bool,
-            smokingBookOpen: bool,
-            smokingFilter: bool,
-        },
-                default: void,
-            }),
-        };
-
         pub const ResourcePackReceive = struct {
-            result: varint,
+            result: vi,
         };
 
         pub const HeldItemSlot = struct {
-            slotId: i16,
+            slot_id: i16,
         };
 
         pub const SetCreativeSlot = struct {
             slot: i16,
-            item: ?Slot,
+            item: Slot,
         };
 
         pub const UpdateJigsawBlock = struct {
             location: position,
-            attachmentType: []u8,
-            targetPool: []u8,
-            finalState: []u8,
+            attachment_type: []u8,
+            target_pool: []u8,
+            final_state: []u8,
         };
 
         pub const UpdateSign = struct {
@@ -1471,7 +1337,7 @@ pub const play = struct {
         };
 
         pub const ArmAnimation = struct {
-            hand: varint,
+            hand: vi,
         };
 
         pub const Spectate = struct {
@@ -1479,26 +1345,26 @@ pub const play = struct {
         };
 
         pub const BlockPlace = struct {
-            hand: varint,
+            hand: vi,
             location: position,
-            direction: varint,
-            cursorX: f32,
-            cursorY: f32,
-            cursorZ: f32,
-            insideBlock: bool,
+            direction: vi,
+            cursor_x: f32,
+            cursor_y: f32,
+            cursor_z: f32,
+            inside_block: bool,
         };
 
         pub const UseItem = struct {
-            hand: varint,
+            hand: vi,
         };
 
         pub const AdvancementTab = struct {
-            action: varint,
-            tabId: SwitchType(action, struct {
-                x0: []u8,
-                x1: void,
-                default: void,
-            }),
+            action: vi,
+            tab_id: union(enum(u8)) {
+                x0: struct {
+                    tab_id: []u8,
+                },
+        },
         };
 
         teleport_confirm: TeleportConfirm,
